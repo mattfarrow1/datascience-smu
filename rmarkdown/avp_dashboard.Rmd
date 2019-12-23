@@ -1,0 +1,1138 @@
+---
+title: "School & Unit Dashboard"
+output: flexdashboard::flex_dashboard
+---
+
+```{r global, include=FALSE}
+library(flexdashboard)
+knitr::opts_chunk$set(echo = TRUE)
+source(here::here("scripts", "avp_dashboard.R"))
+```
+
+Beard
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Beard"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Garner
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Garner"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Martin
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Martin"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Pitts
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Pitts"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Peters
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Peters"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Sharp
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Sharp"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Whittenburg
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Whittenburg"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Middleton
+===================================== 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fundraiser <- "Middleton"
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Households in Portfolio
+
+```{r echo=FALSE}
+households <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(pm) %>% 
+  tally()
+valueBox(households$n, icon = "fa-users")
+```
+
+### Portfolio Value
+
+```{r echo=FALSE}
+portfolio_value <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  summarise(portfolio = sum(rating_value, na.rm = TRUE))
+valueBox(dollar(portfolio_value$portfolio), icon = "fa-dollar-sign")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Prospects by Geography
+
+```{r echo=FALSE, warning=FALSE}
+plot_hex_map(fundraiser)
+```
+
+### Portfolio Stats
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+plot_portfolio_stats(fundraiser)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Visits - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Visits - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_visit) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_visit == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Interactions - Within a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Within a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### Interactions - Over a Year
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Over a Year") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Interactions - Never
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+within_year <- clean_df_constituents %>% 
+  filter(pm == fundraiser) %>% 
+  group_by(time_since_last_interaction) %>% 
+  tally() %>% 
+  mutate(pct = (n / sum(n)) * 100) %>% 
+  filter(time_since_last_interaction == "Never") %>% 
+  select(pct)
+gauge(round(within_year$pct, digits = 0), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
