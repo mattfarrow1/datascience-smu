@@ -35,15 +35,8 @@ df_constituents <- left_join(df_constituents,
                              translate_rating_to_value, 
                              by = c("research_rating" = "rating"))
 
+# Replace blank values with 0
 df_constituents$rating_value[is.na(df_constituents$rating_value)] <- 0
-
-# Define rating bin levels
-rating_bin_levels <- c("Not Rated",
-                       "Less than $50K",
-                       "$50-99K",
-                       "$100-249K",
-                       "$250-999K",
-                       "$1M+")
 
 # Create rating buckets to bin ratings
 df_constituents$rating_bucket <- cut(
@@ -56,13 +49,20 @@ df_constituents$rating_bucket <- cut(
              999999,
              Inf),
   include.lowest = TRUE,
-  labels = rating_bin_levels
+  labels = c(
+    "Not Rated",
+    "Less than $50K",
+    "$50-99K",
+    "$100-249K",
+    "$250-999K",
+    "$1M+"
+  )
 )
 
 # Create householded list
 clean_df_constituents <- df_constituents %>% 
-  group_by(spouse_hash) %>% 
-  arrange(spouse_hash, household_position) %>% 
+  group_by(household_id) %>% 
+  arrange(household_id, household_position) %>% 
   filter(row_number() == 1) %>% 
   ungroup()
 
