@@ -1,14 +1,6 @@
-
-# Reference ---------------------------------------------------------------
-
-# Building Waffle Charts
-# https://rud.is/rpubs/building-waffle-charts.html
-
-# Hexbin Maps
-# # https://www.r-graph-gallery.com/328-hexbin-map-of-the-usa.html
-
 # Setup -------------------------------------------------------------------
 
+# For data wrangling
 library(tidyverse)
 library(lubridate)
 
@@ -27,28 +19,14 @@ library(scales)
 
 # Load Data ---------------------------------------------------------------
 
-df_interactions <- read_csv(here::here("data - raw", "2019-12-18_avp_dashboard_interactions.csv"), 
-                            col_types = cols(QUERYRECID = col_skip(), 
-                                             actual_date = col_date(format = "%m/%d/%Y"), 
-                                             pm_start = col_date(format = "%m/%d/%Y")))
+df_interactions <- read_csv(here::here("data-raw", "avp_dashboard_interactions.csv"), 
+                            col_types = cols(actual_date = col_date(format = "%m/%d/%Y")))
 
-df_constituents <- read_csv(here::here("data - raw", "2019-12-18_avp_dashboard_constituents.csv"), 
-                            col_types = cols(fips_state = col_number(),
-                                             fips_county = col_number(),
-                                             campaign_2_recognition = col_number(), 
-                                             campaign_3_recognition = col_number(), 
-                                             largest_recognition_commitment_amount = col_number(), 
-                                             largest_recognition_commitment_date = col_date(format = "%m/%d/%Y"), 
-                                             last_recognition_cash_amount = col_number(), 
-                                             last_recognition_cash_date = col_date(format = "%m/%d/%Y"), 
-                                             last_recognition_commitment_amount = col_number(), 
-                                             last_recognition_commitment_date = col_date(format = "%m/%d/%Y"), 
-                                             lifetime_recognition_commitments = col_number()))
-
-df_constituents <- select(df_constituents, -c(38:40))
+df_constituents <- read_csv(here::here("data-raw", "avp_dashboard_constituents.csv"), 
+                                       col_types = cols(largest_gift = col_number()))
 
 # Load translation table for rating
-translate_rating_to_value <- read_csv(here::here("data - raw", "translate_rating_to_value.csv"))
+translate_rating_to_value <- read_csv(here::here("data-raw", "translate_rating_to_value.csv"))
 
 # Merge & Wrangle Ratings -------------------------------------------------
 
