@@ -183,6 +183,7 @@ plot_portfolio_stats <- function(x) {
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = FALSE)
 }
 
+# Function to plot how long since the fundraiser's last interaction
 plot_last_interaction <- function(x) {
   clean_df_constituents %>%
     filter(pm == x) %>%
@@ -191,7 +192,6 @@ plot_last_interaction <- function(x) {
     expand_limits(x = c(0, 0), y = c(0, 0)) +
     coord_equal() +
     labs(
-      # title = paste(x, "Time Since Last Interaction"),
       x = "",
       y = "",
       fill = NULL,
@@ -207,13 +207,12 @@ plot_last_interaction <- function(x) {
       height = 1,
       width = 1
     ) +
-    # scale_fill_manual(values = c("#cc0035", alpha("#354ca1", 0.2), alpha("#f9c80e", 0.2))) +
     my_scale +
     theme(axis.text = element_blank()) +
-    # theme(legend.position = "none") +
     NULL
 }
 
+# Function to plot how long since the fundraiser's last visit
 plot_last_visit <- function(x) {
   clean_df_constituents %>%
     filter(pm == x) %>%
@@ -222,7 +221,6 @@ plot_last_visit <- function(x) {
     expand_limits(x = c(0, 0), y = c(0, 0)) +
     coord_equal() +
     labs(
-      # title = paste(x, "Time Since Last Visit"),
       x = "",
       y = "",
       fill = NULL,
@@ -238,7 +236,6 @@ plot_last_visit <- function(x) {
       height = 1,
       width = 1
     ) +
-    # scale_fill_manual(values = c("#cc0035", alpha("#354ca1", 0.2), alpha("#f9c80e", 0.2))) +
     my_scale +
     theme(axis.text = element_blank()) +
     NULL
@@ -247,14 +244,11 @@ plot_last_visit <- function(x) {
 # Mapping -----------------------------------------------------------------
 
 # Load the data
-spdf <- geojson_read(here::here("data - raw", "us_states_hexgrid.geojson"), what = "sp")
-
-# Bit of reformating
-spdf@data = spdf@data %>%
-  mutate(google_name = gsub(" \\(United States\\)", "", google_name))
+spdf <- geojson_read(here::here("data-raw", "us_states_hexgrid.geojson"), what = "sp")
 
 # Prep data for fortifying
-spdf@data = spdf@data %>% mutate(google_name = gsub(" \\(United States\\)", "", google_name))
+spdf@data = spdf@data %>% 
+  mutate(google_name = gsub(" \\(United States\\)", "", google_name))
 
 # Calculate the centroid of each hexagon to add the label:
 library(rgeos)
