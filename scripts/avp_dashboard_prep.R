@@ -72,38 +72,36 @@ clean_df_constituents <- df_constituents %>%
 pm_personal_visit <- df_interactions %>% 
   filter(contact_method == "Personal Visit",
          owner_full == pm_full) %>% 
-  group_by(spouse_hash, actual_date) %>% 
-  arrange(spouse_hash, household_position, desc(actual_date)) %>% 
+  group_by(household_id, actual_date) %>% 
+  arrange(household_id, household_position, desc(actual_date)) %>% 
   filter(row_number() == 1) %>% 
   ungroup() %>% 
-  group_by(spouse_hash) %>% 
-  arrange(spouse_hash, desc(actual_date)) %>% 
+  group_by(household_id) %>% 
+  arrange(household_id, desc(actual_date)) %>% 
   filter(row_number() == 1) %>% 
   ungroup() %>% 
-  arrange(sort_name) %>% 
-  select(spouse_hash,
+  select(household_id,
          actual_date) %>% 
   rename(pm_last_visit_date = actual_date)
 
 # Find most recent interaction
 pm_interaction <- df_interactions %>% 
   filter(owner_full == pm_full) %>% 
-  group_by(spouse_hash, actual_date) %>% 
-  arrange(spouse_hash, household_position, desc(actual_date)) %>% 
+  group_by(household_id, actual_date) %>% 
+  arrange(household_id, household_position, desc(actual_date)) %>% 
   filter(row_number() == 1) %>% 
   ungroup() %>% 
-  group_by(spouse_hash) %>% 
-  arrange(spouse_hash, desc(actual_date)) %>% 
+  group_by(household_id) %>% 
+  arrange(household_id, desc(actual_date)) %>% 
   filter(row_number() == 1) %>% 
   ungroup() %>% 
-  arrange(sort_name) %>% 
-  select(spouse_hash,
+  select(household_id,
          actual_date) %>% 
   rename(pm_last_interaction_date = actual_date)
 
 # Merge datasets together
-clean_df_constituents <- left_join(clean_df_constituents, pm_personal_visit, by = "spouse_hash")
-clean_df_constituents <- left_join(clean_df_constituents, pm_interaction   , by = "spouse_hash")
+clean_df_constituents <- left_join(clean_df_constituents, pm_personal_visit, by = "household_id")
+clean_df_constituents <- left_join(clean_df_constituents, pm_interaction   , by = "household_id")
 
 # Add months since each PM interaction
 clean_df_constituents <- clean_df_constituents %>%
