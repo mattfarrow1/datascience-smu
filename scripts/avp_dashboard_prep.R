@@ -153,6 +153,7 @@ fundraisers <- fundraisers %>% arrange(fundraisers$value)
 
 # Plotting Functions ------------------------------------------------------
 
+# Define custom colors
 my_colors <- c("#cc0035", alpha("#354ca1", 0.2), alpha("#f9c80e", 0.2))
 names(my_colors) <-
   levels(
@@ -163,6 +164,7 @@ names(my_colors) <-
         ))))
 my_scale <- scale_fill_manual(values = my_colors)
 
+# Function to plot portfolio stats
 plot_portfolio_stats <- function(x) {
   clean_df_constituents %>% 
     filter(pm == x) %>% 
@@ -170,16 +172,13 @@ plot_portfolio_stats <- function(x) {
     add_tally() %>% 
     ungroup() %>% 
     group_by(rating_bucket, n) %>% 
-    summarise(avg_largest_gift = mean(largest_recognition_commitment_amount, na.rm = TRUE),
-              sum_rating_value = sum(rating_value, na.rm = TRUE)) %>% 
+    summarise(avg_largest_gift = dollar(mean(largest_gift, na.rm = TRUE)),
+              sum_rating_value = dollar(sum(rating_value, na.rm = TRUE))) %>% 
     mutate_at(vars(avg_largest_gift), ~replace(., is.nan(.), 0)) %>% 
-    mutate(avg_largest_gift = dollar(avg_largest_gift),
-           sum_rating_value = dollar(sum_rating_value)) %>% 
     rename("Rating Bucket" = rating_bucket,
            "Total Households" = n,
            "Average Largest Recognized Gift" = avg_largest_gift,
            "Total Rating Value" = sum_rating_value) %>%
-    # kable(caption = paste(x, "Portfolio Stats")) %>% 
     kable() %>% 
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = FALSE)
 }
