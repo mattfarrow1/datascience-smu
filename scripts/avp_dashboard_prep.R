@@ -12,7 +12,6 @@ library(viridis)
 
 # For plotting
 library(hrbrthemes)
-library(waffle)
 library(knitr)
 library(kableExtra)
 library(scales)
@@ -153,17 +152,6 @@ fundraisers <- fundraisers %>% arrange(fundraisers$value)
 
 # Plotting Functions ------------------------------------------------------
 
-# Define custom colors
-my_colors <- c("#cc0035", alpha("#354ca1", 0.2), alpha("#f9c80e", 0.2))
-names(my_colors) <-
-  levels(
-    factor(
-      c(
-        levels(clean_df_constituents$time_since_last_visit),
-        levels(clean_df_constituents$time_since_last_interaction
-        ))))
-my_scale <- scale_fill_manual(values = my_colors)
-
 # Function to plot portfolio stats
 plot_portfolio_stats <- function(x) {
   clean_df_constituents %>% 
@@ -183,71 +171,13 @@ plot_portfolio_stats <- function(x) {
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = FALSE)
 }
 
-# Function to plot how long since the fundraiser's last interaction
-plot_last_interaction <- function(x) {
-  clean_df_constituents %>%
-    filter(pm == x) %>%
-    count(time_since_last_interaction) %>%
-    ggplot(aes(fill = time_since_last_interaction, values = n)) +
-    expand_limits(x = c(0, 0), y = c(0, 0)) +
-    coord_equal() +
-    labs(
-      x = "",
-      y = "",
-      fill = NULL,
-      colour = NULL
-    ) +
-    theme_ipsum_rc(grid = "") +
-    geom_waffle(
-      n_rows = 10,
-      size = 1,
-      color = "white",
-      make_proportional = TRUE,
-      radius = unit(4, "pt"),
-      height = 1,
-      width = 1
-    ) +
-    my_scale +
-    theme(axis.text = element_blank()) +
-    NULL
-}
-
-# Function to plot how long since the fundraiser's last visit
-plot_last_visit <- function(x) {
-  clean_df_constituents %>%
-    filter(pm == x) %>%
-    count(time_since_last_visit) %>%
-    ggplot(aes(fill = time_since_last_visit, values = n)) +
-    expand_limits(x = c(0, 0), y = c(0, 0)) +
-    coord_equal() +
-    labs(
-      x = "",
-      y = "",
-      fill = NULL,
-      colour = NULL
-    ) +
-    theme_ipsum_rc(grid = "") +
-    geom_waffle(
-      n_rows = 10,
-      size = 1,
-      color = "white",
-      make_proportional = TRUE,
-      radius = unit(4, "pt"),
-      height = 1,
-      width = 1
-    ) +
-    my_scale +
-    theme(axis.text = element_blank()) +
-    NULL
-}
-
 # Mapping -----------------------------------------------------------------
 
 # Load the data
 spdf <- geojson_read(here::here("data-raw", "us_states_hexgrid.geojson"), what = "sp")
 
 # Prep data for fortifying
-spdf@data = spdf@data %>% 
+spdf@data <- spdf@data %>% 
   mutate(google_name = gsub(" \\(United States\\)", "", google_name))
 
 # Calculate the centroid of each hexagon to add the label:
@@ -262,7 +192,8 @@ plot_hex_map <- function(x) {
   # Create dataset of fundraiser's prospects by state
   by_state <- clean_df_constituents %>% 
     filter(pm == x) %>% 
-    select(state) %>% 
+    select(st) %>% 
+    mutate(state = state.name[match(st,state.abb)]) %>% 
     group_by(state) %>% 
     count()
   
