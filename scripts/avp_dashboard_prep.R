@@ -11,7 +11,7 @@ library(broom)
 library(viridis)
 
 # For plotting
-library(hrbrthemes)
+# library(hrbrthemes)
 library(knitr)
 library(kableExtra)
 library(scales)
