@@ -14,6 +14,7 @@ library(hrbrthemes)
 ```
 
 Social media plays such a big role in advertising these days. Some individual social media influencers can make a living by accruing followers and then advertising on their accounts. Twitter is one such social media platform. A social media consultant is interested in determining how to predict the number of Twitter followers based on a few characteristics. He painstakingly scoured the internet to find several hundred Twitter accounts and recorded their number of followers (how many people follow their account-this is the money maker), followees (the number of people the influencer follows), the average number of tweets per week (collected over the course of a year), and the gender of the account holder. We don’t know much about how this data was collected. This data set is found in the file “Twitterdata.csv”.
+
 - You may use SAS or R in your analyses.
 - Please save your work in a Word document (preferably this one) with your NAME in the file name.
 - Include your relevant output at the end of each response (or within, if appropriate).
@@ -47,24 +48,49 @@ The marketing consultant wishes to determine which variables (of those collected
 
 ### Address All Assumptions.
 
-Examine the assumptions with no transformations and after logging (base e) the number of followers.
-You should address any outliers, but do NOT delete any data points. After assumptions are discussed, proceed (using logged followers variable) as if all assumptions are met, even if they are not.
+- Examine the assumptions with no transformations and after logging (base e) the number of followers.
+- You should address any outliers, but do NOT delete any data points. 
+- After assumptions are discussed, proceed (using logged followers variable) as if all assumptions are met, even if they are not.
 
-#### Assumptions of Untransformed Data
+- Normality
+- Linearity
+- Equal Standard Deviation
+- Independence
+- Outliers/Influential Points
 
-1. Build the regression model with parameters to answer the question of interest (Don’t plug in estimates/values of βi’s yet.):
-2. Copy and paste the typical software output that includes the beta estimates, p-values for each beta, and confidence interval, etc. for each beta (screenshot of a table should suffice):
-3. Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model):
-4. Fill out the following table. For the final column, interpret the coefficients as if all coefficients in the model are significant.
+### Regression Model
+
+Build the regression model with parameters to answer the question of interest (Don’t plug in estimates/values of βi’s yet.):
+
+### Software Output
+
+Copy and paste the typical software output that includes the beta estimates, p-values for each beta, and confidence interval, etc. for each beta (screenshot of a table should suffice):
+
+### Fit Model
+
+Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model):
+
+### Model Interpretaion
+
+Fill out the following table. For the final column, interpret the coefficients as if all coefficients in the model are significant.
   The first row is started for you (Replace the results with your own—information in the first row is fictional). 
 
 ```{r}
 coefficients_table <- tibble(beta = "β0", estimated_beta_value = 1000, term = "y-intercept", pvalue = 0.003, significant = "Yes", interpretation = "When followees and tweets per week are negligible, the predicted mean of followers for men is 2")
 ```
 
+### Rebuild Model
 
-- Normality:
-- Linearity:
-- Equal Standard Deviation:
-- Independence:
-- Outliers/Influential Points:
+Rebuild the regression model, taking into account the p-values found when fitting the full model above (regression equation with parameters –GENERAL betas—this may be different or the same as question A-2)
+
+### Fit Simplified Model
+
+Fit (model with estimates/values for betas instead of general betas) a simplified regression model for gender = 1. Begin with the solution for A-4 and find the equation for gender = 1; do not delete any nonsignificant terms for THIS equation.
+
+### Prediction Interval
+
+Find an appropriate prediction interval for the number of followers of a female Twitter account holder with 20 followees who averages 1 tweet per week. Be SPECIFIC about what the interval is for (prediction interval for what?). 
+
+## Bonus
+
+Build Your Own ANOVA (lack of fit test) that compares a model that predicts followers based on the three independent variables in the dataset (no interaction terms) to the model found in A-4. If these are exactly the same, state that. If not, build your own ANOVA. 
