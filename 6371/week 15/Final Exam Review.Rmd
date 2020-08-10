@@ -1,0 +1,70 @@
+---
+title: '6371: Final Exam Review'
+author: "Matt Farrow"
+date: "8/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(GGally)
+library(hrbrthemes)
+```
+
+Social media plays such a big role in advertising these days. Some individual social media influencers can make a living by accruing followers and then advertising on their accounts. Twitter is one such social media platform. A social media consultant is interested in determining how to predict the number of Twitter followers based on a few characteristics. He painstakingly scoured the internet to find several hundred Twitter accounts and recorded their number of followers (how many people follow their account-this is the money maker), followees (the number of people the influencer follows), the average number of tweets per week (collected over the course of a year), and the gender of the account holder. We don’t know much about how this data was collected. This data set is found in the file “Twitterdata.csv”.
+- You may use SAS or R in your analyses.
+- Please save your work in a Word document (preferably this one) with your NAME in the file name.
+- Include your relevant output at the end of each response (or within, if appropriate).
+- Include code in the appendix of your work.
+- Unless otherwise specified, assume α=0.05 and 95% confidence.
+- Be careful that software treats the variable gender as you intend, categorical or numeric. (Its values are 0 for a man and 1 for a woman.)
+
+## Prep Data
+
+```{r echo=FALSE}
+# Load data
+df <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 15/Twitterdata.csv")
+
+# Clean column names
+df <- janitor::clean_names(df)
+
+# Add gender label column & log followers
+df <- df %>% 
+  mutate(sex = if_else(gender == 0, "M", "F"),
+         log_followers = log(followers)) %>% 
+  rename(follow_ees = follow_e_es)
+```
+
+## Part A
+
+The marketing consultant wishes to determine which variables (of those collected) are useful for predicting the number of Twitter followers for a given account.
+
+- Consider the possibility that the relationship between followers and the explanatory variables (both tweets per week and number of followEES) can vary based on gender.
+- No other interactions should be considered (besides those above).
+- You will need to create a new variable that takes the log (base e) of the followers variable.
+
+### Address All Assumptions.
+
+Examine the assumptions with no transformations and after logging (base e) the number of followers.
+You should address any outliers, but do NOT delete any data points. After assumptions are discussed, proceed (using logged followers variable) as if all assumptions are met, even if they are not.
+
+#### Assumptions of Untransformed Data
+
+1. Build the regression model with parameters to answer the question of interest (Don’t plug in estimates/values of βi’s yet.):
+2. Copy and paste the typical software output that includes the beta estimates, p-values for each beta, and confidence interval, etc. for each beta (screenshot of a table should suffice):
+3. Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model):
+4. Fill out the following table. For the final column, interpret the coefficients as if all coefficients in the model are significant.
+  The first row is started for you (Replace the results with your own—information in the first row is fictional). 
+
+```{r}
+coefficients_table <- tibble(beta = "β0", estimated_beta_value = 1000, term = "y-intercept", pvalue = 0.003, significant = "Yes", interpretation = "When followees and tweets per week are negligible, the predicted mean of followers for men is 2")
+```
+
+
+- Normality:
+- Linearity:
+- Equal Standard Deviation:
+- Independence:
+- Outliers/Influential Points:
