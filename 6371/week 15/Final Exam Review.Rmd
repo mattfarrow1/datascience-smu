@@ -146,6 +146,8 @@ summary(model)
 
 Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model).
 
+$$μ_{log(followers)} = -2.0421 - 0.0004(followees) + 0.0065(tweets\_per\_week) + 0.3346(gender) +  0.0503(gender * followees) - 0.0165(gender * tweets\_per\_week)$$
+
 ```{r}
 model_fit <- model %>% augment()
 model_fit
@@ -190,7 +192,6 @@ d <- model_fit %>%
 
 ```
 
-
 #### Cook's D
 
 ```{r fig.cap="Cook's D"}
@@ -201,14 +202,17 @@ model_fit %>%
   theme_ipsum()
 ```
 
-
 ### Model Interpretaion
 
 Fill out the following table. For the final column, interpret the coefficients as if all coefficients in the model are significant.
-  The first row is started for you (Replace the results with your own—information in the first row is fictional). 
 
 ```{r echo=FALSE}
-coefficients_table <- tibble(Beta = "β0", `Estimated Beta Value` = 1000, Term = "y-intercept", `P-Value` = 0.003, Significant = "Yes", Interpretation = "When followees and tweets per week are negligible, the predicted mean of followers for men is 2")
+coefficients_table <- tibble(Beta = c("β0", "β1", "β2", "β3", "β4", "β5"),
+                             `Estimated Beta Value` = c(2.0421, -0.0004, 0.0065, 0.0335, 0.0503, -0.0165), 
+                             Term = c("Intercept", "follow_ees", "tweets_per_wk", "gender", "follow_ees:gender", "tweets_per_wk:gender"), 
+                             `P-Value` = c("<0.0001", 0.2384, 0.3067, 0.5166, "<0.0001", 0.0811), 
+                             Significant = c("Yes", "No", "No", "No", "Yes", "No"), 
+                             Interpretation = c("When followees and tweets per week are negligible, the predicted median of followers for men is e2.04 = 7.7.", "When Tweets per week are held constant, one more followEE results in a multiplicative change in predicted median followers of e-0.000355=0.999645 (or decrease of 0.0355%) for men.", "When followEEs are held constant, one more tweet per week results in a multiplicative change in predicted median followers of e0.0065=1.0065 (or increase of 0.65%) for men.", "When followees and tweets per week are negligible, the predicted median of followers for women men is e0.033=1.03 TIMES MORE than the median for men (when followees and tweets per week are negligible).", "When Tweets per week are held constant for WOMEN, one more followEE results in a multiplicative increase in multiplicative change (it’s a mouthful) in predicted median followers of e0.05=1.05 (or increase of 5%) MORE than the multiplicative change in predicted median followers for men when followEEs is increased by 1.", "When FollowEEs are held constant for WOMEN, one more Tweet per week results in a multiplicative decrease in multiplicative change in predicted median followers of e-0.016=0.98 (or decrease of 2%) MORE than the multiplicative change in predicted median followers for men when Tweets per week is increased by 1."))
 
 coefficients_table %>% 
   kable() %>% 
