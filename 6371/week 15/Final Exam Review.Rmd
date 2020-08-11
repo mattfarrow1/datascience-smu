@@ -11,9 +11,14 @@ library(tidyverse)
 library(broom)
 library(GGally)
 library(hrbrthemes)
+library(scales)
+library(tidymodels)
+library(patchwork)
+library(kableExtra)
+library(knitr)
 ```
 
-Social media plays such a big role in advertising these days. Some individual social media influencers can make a living by accruing followers and then advertising on their accounts. Twitter is one such social media platform. A social media consultant is interested in determining how to predict the number of Twitter followers based on a few characteristics. He painstakingly scoured the internet to find several hundred Twitter accounts and recorded their number of followers (how many people follow their account-this is the money maker), followees (the number of people the influencer follows), the average number of tweets per week (collected over the course of a year), and the gender of the account holder. We don’t know much about how this data was collected. This data set is found in the file “Twitterdata.csv”.
+Social media plays such a big role in advertising these days. Some individual social media influencers can make a living by accruing followers and then advertising on their accounts. Twitter is one such social media platform. A social media consultant is interested in determining how to **predict the number of Twitter followers** based on a few characteristics. He painstakingly scoured the internet to find several hundred Twitter accounts and recorded their number of followers (how many people follow their account-this is the money maker), followees (the number of people the influencer follows), the average number of tweets per week (collected over the course of a year), and the gender of the account holder. We don’t know much about how this data was collected. This data set is found in the file “Twitterdata.csv”.
 
 - You may use SAS or R in your analyses.
 - Please save your work in a Word document (preferably this one) with your NAME in the file name.
@@ -24,9 +29,9 @@ Social media plays such a big role in advertising these days. Some individual so
 
 ## Prep Data
 
-```{r echo=FALSE}
+```{r}
 # Load data
-df <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 15/Twitterdata.csv")
+df <- read_csv(here::here("6371", "week 15", "Twitterdata.csv"))
 
 # Clean column names
 df <- janitor::clean_names(df)
@@ -46,12 +51,70 @@ The marketing consultant wishes to determine which variables (of those collected
 - No other interactions should be considered (besides those above).
 - You will need to create a new variable that takes the log (base e) of the followers variable.
 
-### Address All Assumptions.
+### Address All Assumptions
 
 - Examine the assumptions with no transformations and after logging (base e) the number of followers.
 - You should address any outliers, but do NOT delete any data points. 
 - After assumptions are discussed, proceed (using logged followers variable) as if all assumptions are met, even if they are not.
 
+```{r message=FALSE, fig.cap="Scatter plots of data"}
+a <- df %>% 
+  ggplot(aes(follow_ees, followers, color = sex)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_y_continuous(label = comma) +
+  labs(title = "Original Data",
+       x = "Follow(ees)",
+       y = "Followers",
+       color = "Gender ") +
+  theme_ipsum() +
+  theme(legend.position = "bottom") 
+
+b <- df %>% 
+  ggplot(aes(follow_ees, log_followers, color = sex)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_y_continuous(label = comma) +
+  labs(title = "Log Transformed Followers",
+       x = "Follow(ees)",
+       y = "log(Followers)",
+       color = "Gender") +
+  theme_ipsum() +
+  theme(legend.position = "bottom") 
+
+# Combine plots
+a + b
+```
+
+```{r message=FALSE, fig.cap="Histograms of data"}
+a <- df %>% 
+  ggplot(aes(followers, fill = sex)) +
+  geom_histogram(bins = 10, color = "black", alpha = 0.5) +
+  labs(title = "Original Data",
+       x = "Followers",
+       y = "Count",
+       fill = "Gender ") +
+  theme_ipsum() +
+  theme(legend.position = "bottom") 
+
+b <- df %>% 
+  ggplot(aes(log_followers, fill = sex)) +
+  geom_histogram(bins = 10, color = "black", alpha = 0.5) +
+  scale_y_continuous(label = comma) +
+  labs(title = "Log Transformed\nFollowers",
+       x = "log(Followers)",
+       y = "Count",
+       fill = "Gender") +
+  theme_ipsum() +
+  theme(legend.position = "bottom") 
+
+# Combine plots
+a + b
+```
+
+```{r message=FALSE, fig.cap="Plot Matrix"}
+ggpairs(df)
+```
 - Normality
 - Linearity
 - Equal Standard Deviation
@@ -60,23 +123,98 @@ The marketing consultant wishes to determine which variables (of those collected
 
 ### Regression Model
 
-Build the regression model with parameters to answer the question of interest (Don’t plug in estimates/values of βi’s yet.):
+Build the regression model with parameters to answer the question of interest (Don’t plug in estimates/values of βi’s yet.)
+
+$$μ_{log(followers)} = β_0 + β_1(followees) + β_2(tweets\_per\_week) + β_3(gender) +  β_4(gender * followees) +  β_5(gender * tweets\_per\_week)$$
 
 ### Software Output
 
-Copy and paste the typical software output that includes the beta estimates, p-values for each beta, and confidence interval, etc. for each beta (screenshot of a table should suffice):
+Copy and paste the typical software output that includes the beta estimates, p-values for each beta, and confidence interval, etc. for each beta (screenshot of a table should suffice).
+
+```{r}
+model <-
+  lm(
+    log_followers ~ 
+      follow_ees + tweets_per_wk + gender + (gender * follow_ees) + (gender * tweets_per_wk),
+    data = df
+  )
+
+summary(model)
+```
 
 ### Fit Model
 
-Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model):
+Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model).
+
+```{r}
+model_fit <- model %>% augment()
+model_fit
+```
+
+#### Analysis of Residuals
+
+```{r}
+# Plot residuals
+a <- model_fit %>% 
+  ggplot(aes(.fitted, .resid)) +
+  geom_point(shape = 1, color = "gray50") +
+  geom_hline(yintercept = 0, color = "blue") +
+  labs(title = "Residuals") +
+  theme_ipsum()
+
+# Plot studentized residuals
+b <- model_fit %>% 
+  ggplot(aes(.fitted, .std.resid)) +
+  geom_point(shape = 1, color = "gray50") +
+  geom_hline(yintercept = 0, color = "blue") +
+  labs(title = "Studentized Residuals") +
+  theme_ipsum()
+
+# Q-Q Plot of Residuals
+c <- model_fit %>% 
+  ggplot(aes(sample = .resid)) +
+  stat_qq_line(color = "darkblue") +
+  stat_qq(alpha = 0.2, size = 1, color = "gray50") +
+  labs(title = "Q-Q Plot of Residuals") +
+  theme_ipsum()
+
+# Histogram of residuals
+d <- model_fit %>% 
+  ggplot(aes(.resid, ..density..)) +
+  geom_histogram(fill = "lightblue", color = "darkblue") +
+  geom_density() +
+  labs(title = "Histogram of Residuals") +
+  theme_ipsum()
+
+(a + b) / (c + d)
+
+```
+
+
+#### Cook's D
+
+```{r fig.cap="Cook's D"}
+model_fit %>% 
+  ggplot(aes(.fitted, .cooksd)) +
+  geom_jitter(alpha = 0.8) +
+  labs(title = "Cook's D of log(Followers) Model") +
+  theme_ipsum()
+```
+
 
 ### Model Interpretaion
 
 Fill out the following table. For the final column, interpret the coefficients as if all coefficients in the model are significant.
   The first row is started for you (Replace the results with your own—information in the first row is fictional). 
 
-```{r}
-coefficients_table <- tibble(beta = "β0", estimated_beta_value = 1000, term = "y-intercept", pvalue = 0.003, significant = "Yes", interpretation = "When followees and tweets per week are negligible, the predicted mean of followers for men is 2")
+```{r echo=FALSE}
+coefficients_table <- tibble(Beta = "β0", `Estimated Beta Value` = 1000, Term = "y-intercept", `P-Value` = 0.003, Significant = "Yes", Interpretation = "When followees and tweets per week are negligible, the predicted mean of followers for men is 2")
+
+coefficients_table %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive")) %>% 
+  column_spec(6, width = "30em")
+
 ```
 
 ### Rebuild Model
