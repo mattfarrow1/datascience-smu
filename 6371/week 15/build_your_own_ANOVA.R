@@ -25,18 +25,18 @@ model_reduced <- lm(log_followers ~ gender + follow_ees + tweets_per_wk, data = 
 # BYoANOVA Function -------------------------------------------------------
 
 # Build Your Own ANOVA Function
-build_own_anova <- function(x, y){
+build_own_anova <- function(full, reduced){
   
   library(dplyr)
   
   # Get df and sum of squares from full model
-  full <- x %>% 
+  full <- full %>% 
     anova() %>% 
     slice_tail(1) %>% 
     select(1:2)
   
   # Get df and sum of squares from reduced model
-  reduced <- y %>% 
+  reduced <- reduced %>% 
     anova() %>% 
     slice_tail(1) %>% 
     select(1:2)
