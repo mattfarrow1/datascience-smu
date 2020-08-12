@@ -1,0 +1,166 @@
+---
+title: "Matt Farrow Unit 11 HW"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(hrbrthemes)
+library(scales)
+```
+
+## Load Data
+
+```{r prep, include=FALSE}
+# Load Data
+df <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 11/Autism Data Prob 29.csv")
+
+# Clean Names
+df <- janitor::clean_names(df)
+```
+
+## Address Assumptions
+
+> Address all the assumptions for a linear regression model prior to the analysis. If the assumptions are not met, handle the data appropriately. If a transformation is used, address the assumptions again with the transformed data to ensure that the transformation is logical. The questions below should reflect this. For example, you should include a scatter plot for the original data AND transformed data, etc. (Hint: if a transformation is necessary, try one of the transformations discussed in class first.) At minimum, provide and interpret the following elements to address assumptions FOR THE ORIGINAL DATA AND ANY TRANSFORMED DATA (IF you use a transformation). You may include more graphs if you find them useful.
+
+### Create Linear Model
+
+```{r}
+# Create Model
+model <- lm(prevalence ~ year, data = df)
+
+# Append Predictions to Dataset
+autism <- cbind(df, predict.lm(model, interval = "predict", level = 0.95))
+```
+
+### Scatter Plot
+
+> A scatterplot with the following included on the graph: regression line, confidence intervals of the regression line, and prediction intervals of the regression line.
+
+```{r}
+# Inital Scatter Plot
+autism %>% 
+  ggplot(aes(year, prevalence)) +
+  geom_point() +
+  geom_smooth(method = "lm", level = 0.95) +
+  geom_line(aes(y = lwr), col = "coral2", linetype = "dashed") +
+  geom_line(aes(y = upr), col = "coral2", linetype = "dashed") +
+  labs(title = "How has the distribution of the prevalence of autism\nchanged over the years?",
+       x = "Year",
+       y = "Prevalence") +
+  theme_ipsum() +
+  NULL
+```
+
+**The data appear to be curved; perhaps a log transformation will help.**
+
+### Create Log-Adjusted Linear Model
+
+```{r}
+# Log Transform the Data
+log_autism <- df %>% 
+  mutate(log_prevalence = log(prevalence))
+
+# Create Model
+log_model <- lm(log_prevalence ~ year, data = log_autism)
+
+# Append Predictions to Dataset
+log_autism <- cbind(log_autism, predict.lm(log_model, interval = "predict", level = 0.95))
+```
+
+### Log-Adjusted Scatter Plot
+
+```{r}
+# Log Transformed Data
+log_autism %>% 
+  ggplot(aes(year, log_prevalence)) +
+  geom_point() +
+  geom_smooth(method = "lm", level = 0.95) +
+  geom_line(aes(y = lwr), col = "coral2", linetype = "dashed") +
+  geom_line(aes(y = upr), col = "coral2", linetype = "dashed") +
+  labs(title = "How has the distribution of the prevalence of autism\nchanged over the years?",
+       x = "Year",
+       y = "Prevalence (log)") +
+  theme_ipsum() +
+  NULL
+```
+
+**That looks much nicer.**
+
+### Scatter Plot of Residuals
+
+```{r}
+# Plot Residuals
+log_autism %>% 
+  mutate(residuals = resid(log_model)) %>% 
+  ggplot(aes(year, residuals)) +
+  geom_point(size = 3) +
+  geom_hline(yintercept = 0) +
+  labs(title = "Autism Residuals",
+       x = "Year",
+       y = "Residuals (log)") +
+  theme_ipsum() +
+  NULL
+```
+
+### Histogram of Residuals with Normal Distribution
+
+```{r}
+log_autism <- log_autism %>% 
+  mutate(residuals = resid(log_model))
+
+log_autism %>% 
+  ggplot(aes(x = residuals)) +
+  geom_histogram(aes(y = ..density..), bins = 3, color = "darkblue", fill = "lightblue") + 
+  stat_function(fun = dnorm,
+                args = list(mean = mean(log_autism$residuals),
+                            sd = sd(log_autism$residuals)),
+                geom = "density",
+                fill = "firebrick2",
+                alpha = 0.5) +
+  labs(title = "Autism Histogram",
+       x = "Residuals (log)",
+       y = "Density") +
+  theme_ipsum() +
+  NULL
+```
+
+### Discussion of Model Choice
+
+> A discussion supporting the use of the model you chose (support that the assumptions are met).
+
+1. **Linearity**: with the log-transformed data, the assumptions for linearity at met.
+2. **Normality**: again, the log-transformed data looks correct.
+3. **Equal Standard Deviation**s: it’s incredibly difficult to tell with either the original data or the log-transformed data that we have equal standard deviations due to the small number of points.
+4. **Independence**: without additional information, we will assume independence.
+5. **Outliers**: no outliers appear in the data so we do not need to address them here.
+6. **Decision**: the analysis will continue using the log-transformed data.
+
+## Model Summary
+
+> Once a reasonable model is found (possibly using a transformation), provide a table showing the t-statistics and p-values for the significance of the regression parameters β_0 and β_1.
+
+```{r}
+summary(log_model)
+```
+
+## Estimate Regression Equation
+
+μ ̂( log⁡(prevalence)│year)= -407.975+0.205(year)
+
+## Interpret the Model
+
+> Interpretation of the model, paying special attention if you used a transformation (hint!). That is, interpret the slope as well as the confidence interval. 
+
+Each year there is a e^(0.2054) change (1.228) in the median autism prevalence. This change equates to a 23% increase. A 95% confidence interval is (e^(0.1975), e^(0.2133)) or (1.2184, 1.2378), an increase of (21.8%, 23.8%) 
+
+## Measure the Variation
+
+> A measure of the proportion of variation in the response that is accounted for by the explanatory variable. Interpret this measure clearly.
+
+- R-squared: 0.9996
+- 99.96% of the variance in the prevalence in autism is accounted for by the year.

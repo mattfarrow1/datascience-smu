@@ -1,0 +1,79 @@
+---
+title: "Week 8 Homework"
+author: "Matt Farrow"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(hrbrthemes)
+library(scales)
+df <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 8/Baseball_Data.csv")
+```
+
+## Initial Scatterplot
+
+```{r}
+df %>% 
+  ggplot(aes(Payroll, Wins)) +
+  geom_point() +
+  scale_x_continuous(labels = dollar) +
+  labs(title = "Baseball Payroll vs. Wins",
+       x = "Payroll ($ millions)",
+       caption = "Matt Farrow, Week 8 Homework\ndata from 2010 season") +
+  theme_ipsum() +
+  NULL
+```
+
+## Correlation Between Payroll & Wins
+
+```{r correlation}
+cor.test(df$Payroll, df$Wins)
+```
+
+## Add Correlation to Plot
+
+```{r pressure, echo=FALSE}
+df %>% 
+  ggplot(aes(Payroll, Wins)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  scale_x_continuous(labels = dollar) +
+  labs(title = "Baseball Payroll vs. Wins",
+       x = "Payroll ($ millions)",
+       caption = "Matt Farrow, Week 8 Homework\ndata from 2010 season") +
+  theme_ipsum() +
+  NULL
+```
+
+## Remove San Diego 
+
+San Diego (SD) has a payroll of $38 million, yet SD has 90 wins – more than Boston does (with a payroll of $162 million). Delete SD from the data and rerun the analysis (scatter plot and correlation value). How does the correlation change?  
+
+```{r}
+df_less_SD <- df %>% 
+  filter(TEAM != "SD")
+```
+
+## Run Correlation
+
+```{r}
+cor.test(df_less_SD$Payroll, df_less_SD$Wins)
+```
+
+## Scatterplot
+
+```{r echo=FALSE}
+df_less_SD %>% 
+  ggplot(aes(Payroll, Wins)) +
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE) +
+  scale_x_continuous(labels = dollar) +
+  labs(title = "Baseball Payroll vs. Wins",
+       subtitle = "Excludes San Diego (Payroll: $38M, Wins: 90)",
+       x = "Payroll ($ millions)",
+       caption = "Matt Farrow, Week 8 Homework\ndata from 2010 season") +
+  theme_ipsum() +
+  NULL
+```

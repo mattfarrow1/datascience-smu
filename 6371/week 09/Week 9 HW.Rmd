@@ -1,0 +1,88 @@
+---
+title: "Test Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+baseball <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 9/Baseball_Data.csv")
+df <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 9/TEST DATA.csv")
+```
+
+## Baseball
+
+### Scatterplot
+
+```{r echo=FALSE}
+baseball %>% 
+  ggplot(aes(Payroll, Wins)) +
+  geom_jitter(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(title = "Simple Linear Regression of Payroll & Wins",
+       x = "Payroll ($millions)",
+       y = "Wins",
+       caption = "Matt Farrow — Unit 9 HW") +
+  theme_minimal() +
+  NULL
+```
+
+### Correlation
+
+```{r}
+fit <- lm(Wins ~ Payroll, data = baseball)
+summary(fit)
+```
+
+### Confidence Interval
+
+```{r}
+confint(fit)
+```
+
+### Predictions
+
+Give a 95% CI (confidence interval) for the expected number of wins for a team with $100 million payroll.
+
+```{r}
+newdf <- data.frame(Payroll = 100)
+predict(fit, newdf, interval = "confidence")
+```
+
+Give a 95% PI (prediction interval) for the number of wins for a team with $100 million payroll.
+
+```{r}
+newdf <- data.frame(Payroll = 100)
+predict(fit, newdf, interval = "prediction")
+```
+
+## Test Scores
+
+### Scatterplot
+
+```{r echo=FALSE}
+df %>% 
+  ggplot(aes(science, math)) +
+  geom_jitter(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(title = "Simple Linear Regression of Science & Math Scores",
+       x = "Science Scores",
+       y = "Math Scores",
+       caption = "Matt Farrow — Unit 9 HW") +
+  theme_minimal() +
+  NULL
+```
+
+### Correlation
+
+```{r}
+fit <- lm(math ~ science, data = df)
+summary(fit)
+```
+
+### Confidence Interval
+
+```{r}
+confint(fit)
+```
+

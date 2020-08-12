@@ -1,0 +1,44 @@
+---
+title: "8.14 Pearson's R by Hand"
+author: "Matt Farrow"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Setup & Calculations
+
+```{r}
+# Build Tibble
+df <- tibble(speed = c(20, 30, 40, 50, 60), mpg = c(24, 28, 30, 28, 24))
+
+# Calculate Mean & Standard Deviation
+sd_x  <- sd(df$speed)
+sd_y  <- sd(df$mpg)
+x_bar <- mean(df$speed)
+y_bar <- mean(df$mpg)
+
+# Calculate Z(x), Z(y), and ZxZy
+df <- df %>% 
+  mutate(z_x = (speed - x_bar) / sd_x,
+         z_y = (mpg - y_bar / sd_y),
+         zxzy = z_x * z_y)
+
+# Calculate r
+r <- sum(df$zxzy) / 4
+```
+
+## Plot Data
+
+```{r echo=FALSE}
+ggplot(df, aes(speed, mpg)) +
+  geom_point(size = 3, color = "darkblue") +
+  labs(title = "Matt Farrow, Unit 8 Asynchronous Work",
+       x = "Speed",
+       y = "MPG") +
+  theme_minimal() +
+  NULL
+```

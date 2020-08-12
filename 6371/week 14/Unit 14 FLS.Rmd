@@ -1,0 +1,99 @@
+---
+title: "Unit 14: FLS"
+author: "Matt Farrow"
+date: "8/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+library(hrbrthemes)
+library(GGally)
+```
+
+## Part 2
+
+```{r echo=FALSE}
+# Build tibble
+df <- tibble(subject = c(1:9),
+             x = c(1, 2, 3, 4, 1, 2, 3, 4, 30),
+             y = c(2, 3, 3, 3, 2, 3, 3, 3, 50),
+             group = c(rep("Exclude", 4), rep("Include", 5)))
+
+df_i <- df %>% filter(group == "Include")
+df_e <- df %>% filter(group == "Exclude")
+```
+
+```{r }
+model <- lm(y ~ x, data = df_i)
+
+summary(model)
+confint(model)
+
+model %>% 
+  augment() %>% 
+  ggplot(aes(.fitted, .cooksd)) +
+  geom_jitter(alpha = 0.8) +
+  labs(title = "Cook's D of 'Include' Model") +
+  theme_ipsum()
+```
+
+```{r}
+model <- lm(y ~ x, data = df_e)
+
+summary(model)
+confint(model)
+
+model %>% 
+  augment() %>% 
+  ggplot(aes(.fitted, .cooksd)) +
+  geom_jitter(alpha = 0.8) +
+  labs(title = "Cook's D of 'Exclude' Model") +
+  theme_ipsum()
+```
+
+## Part 3
+
+```{r}
+# Load the data
+sat <- read_csv("Documents/DataScience@SMU/MSDS-6371-Stat-Foundations/Unit 14/SAT Data Set.csv")
+```
+
+```{r}
+# Inspect the data
+glimpse(sat)
+sat %>% 
+  select(c(2:8)) %>% 
+  ggpairs()
+```
+
+```{r}
+# Scatter plots
+sat %>% 
+  ggplot(aes(Takers, SAT)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Original Data") +
+  theme_ipsum()
+
+sat %>% 
+  mutate(log_Takers = log(Takers)) %>% 
+  ggplot(aes(log_Takers, SAT)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "Log Transformed Data") +
+  theme_ipsum()
+```
+
+```{r}
+library(MASS)
+
+sat_train <- sat %>% 
+  dplyr::select(2:6, 8)
+train_model <- lm(SAT ~., data = sat_train)
+step_model <- stepAIC(train_model, direction = "both", trace = FALSE)
+summary(step_model)
+```
+
