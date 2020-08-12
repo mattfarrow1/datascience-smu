@@ -1,5 +1,10 @@
+
+# Setup -------------------------------------------------------------------
+
 library(readr)
 library(dplyr)
+
+# Load & Prep Data --------------------------------------------------------
 
 # Load data
 df <- read_csv(here::here("6371", "week 15", "Twitterdata.csv"))
@@ -16,6 +21,8 @@ df <- df %>%
 # Build model
 model <- lm(log_followers ~ follow_ees + tweets_per_wk + gender + (gender * follow_ees) + (gender * tweets_per_wk), data = df)
 model_reduced <- lm(log_followers ~ gender + follow_ees + tweets_per_wk, data = df)
+
+# BYoANOVA Function -------------------------------------------------------
 
 # Build Your Own ANOVA Function
 build_own_anova <- function(x, y){
