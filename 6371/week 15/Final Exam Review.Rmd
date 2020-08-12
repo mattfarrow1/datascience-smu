@@ -41,6 +41,9 @@ df <- df %>%
   mutate(sex = if_else(gender == 0, "M", "F"),
          log_followers = log(followers)) %>% 
   rename(follow_ees = follow_e_es)
+
+# Look at data
+head(df)
 ```
 
 ## Part A
@@ -57,7 +60,7 @@ The marketing consultant wishes to determine which variables (of those collected
 - You should address any outliers, but do NOT delete any data points. 
 - After assumptions are discussed, proceed (using logged followers variable) as if all assumptions are met, even if they are not.
 
-```{r message=FALSE, fig.cap="Scatter plots of data"}
+```{r message=FALSE, fig.cap="Scatter plots of data", fig.align="center"}
 a <- df %>% 
   ggplot(aes(follow_ees, followers, color = sex)) +
   geom_point() +
@@ -86,7 +89,7 @@ b <- df %>%
 a + b
 ```
 
-```{r message=FALSE, fig.cap="Histograms of data"}
+```{r message=FALSE, fig.cap="Histograms of data", fig.align="center"}
 a <- df %>% 
   ggplot(aes(followers, fill = sex)) +
   geom_histogram(bins = 10, color = "black", alpha = 0.5) +
@@ -112,7 +115,7 @@ b <- df %>%
 a + b
 ```
 
-```{r message=FALSE, fig.cap="Plot Matrix"}
+```{r message=FALSE, fig.cap="Plot Matrix", fig.align="center"}
 ggpairs(df)
 ```
 - Normality
@@ -142,6 +145,8 @@ model <-
 summary(model)
 ```
 
+```
+
 ### Fit Model
 
 Fit the model using software output found above (regression equation with actual estimates for the betas—do not delete any variables even if some are not significant to this model).
@@ -151,6 +156,17 @@ $$μ_{log(followers)} = -2.0421 - 0.0004(followees) + 0.0065(tweets\_per\_week) 
 ```{r}
 model_fit <- model %>% augment()
 model_fit
+```
+
+### Analysis of Leverage
+
+```{r}
+# Change the layout to 2x2 to accommodate all plots
+par(mfrow=c(2,2))
+par(mar = rep(2, 4))
+ 
+# Diagnostic Plots
+plot(model)
 ```
 
 #### Analysis of Residuals
@@ -225,9 +241,15 @@ coefficients_table %>%
 
 Rebuild the regression model, taking into account the p-values found when fitting the full model above (regression equation with parameters –GENERAL betas—this may be different or the same as question A-2)
 
+$$μ_{log(followers)} = β_0 + β_1(followees) + β_2(gender) +  β_3(gender * followees)$$
+
 ### Fit Simplified Model
 
 Fit (model with estimates/values for betas instead of general betas) a simplified regression model for gender = 1. Begin with the solution for A-4 and find the equation for gender = 1; do not delete any nonsignificant terms for THIS equation.
+
+$$μ_{log(followers|gender=1)} = 2.0421 - 0.0004(followees) + 0.0065(tweets\_per\_week) + 0.3346(gender) +  0.0503(gender * followees) - 0.0165(gender * tweets\_per\_week)$$
+
+$$μ_{log(followers|gender=1)} = 2.3767 - 0.0499(followees) - 0.01(tweets\_per\_week) + 0.3346$$
 
 ### Prediction Interval
 
@@ -236,3 +258,7 @@ Find an appropriate prediction interval for the number of followers of a female 
 ## Bonus
 
 Build Your Own ANOVA (lack of fit test) that compares a model that predicts followers based on the three independent variables in the dataset (no interaction terms) to the model found in A-4. If these are exactly the same, state that. If not, build your own ANOVA. 
+
+$H_0: β_4 = β_5 = 0$
+$H_a: β_4 or β_5 ≠ 0$
+
