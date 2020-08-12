@@ -118,11 +118,11 @@ a + b
 ```{r message=FALSE, fig.cap="Plot Matrix", fig.align="center"}
 ggpairs(df)
 ```
-- Normality
-- Linearity
-- Equal Standard Deviation
-- Independence
-- Outliers/Influential Points
+- **Normality**: Based on the Q-Q plots, the original data are not normally distributed, but the log-transformed data are. 
+- **Linearity: From the scatter plots, the original dta do not show much linear distribution. The transformed data show a linear relationship among the males and females. 
+- **Equal Standard Deviation**: The single outlying female data point makes it difficult to tell if the data have equal standard deviation. The transformed data appear to be more of a random cloud. 
+- **Independence**: Without more information about how the data was collected, we will assume it is indenpendent. 
+- **Outliers/Influential Points**: There is one point that is significantly greater than the others and should be addressed by the transformation.
 
 ### Regression Model
 
@@ -155,6 +155,7 @@ $$μ_{log(followers)} = -2.0421 - 0.0004(followees) + 0.0065(tweets\_per\_week) 
 
 ```{r}
 model_fit <- model %>% augment()
+
 model_fit
 ```
 
@@ -261,4 +262,38 @@ Build Your Own ANOVA (lack of fit test) that compares a model that predicts foll
 
 $H_0: β_4 = β_5 = 0$
 $H_a: β_4 or β_5 ≠ 0$
+
+### Build Reduced Model
+```{r}
+model_reduced <- lm(log_followers ~ gender + follow_ees + tweets_per_wk, data = df)
+```
+
+### Run ANOVAs
+
+```{r}
+anova(model)
+anova(model_reduced)
+```
+
+```{r}
+byo_anova <-
+  tibble(
+    "source" = c("Model", "Error", "Total"),
+    "df" = c(2, 393, 395),
+    "SS" = c(436.6, 14.51, 451.11),
+    "MS" = c(218.3, 0.0369, 0),
+    "F" = c(5915.9892, 0, 0),
+    "P-Value" = c(0, 0, 0)
+  )
+
+byo_anova[1,6] <- pf(byo_anova$F[1], byo_anova$df[2], byo_anova$df[1], lower.tail = FALSE)
+
+byo_anova <- na_if(byo_anova, 0)
+
+options(knitr.kable.NA = '')
+
+byo_anova %>% 
+  kable() %>% 
+  kable_styling("striped")
+```
 
