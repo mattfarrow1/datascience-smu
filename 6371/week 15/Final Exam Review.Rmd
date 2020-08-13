@@ -276,23 +276,65 @@ anova(model_reduced)
 ```
 
 ```{r}
-byo_anova <-
-  tibble(
-    "source" = c("Model", "Error", "Total"),
-    "df" = c(2, 393, 395),
-    "SS" = c(436.6, 14.51, 451.11),
-    "MS" = c(218.3, 0.0369, 0),
-    "F" = c(5915.9892, 0, 0),
-    "P-Value" = c(0, 0, 0)
+build_own_anova <- function(full, reduced){
+  
+  library(dplyr)
+  
+  # Get df and sum of squares from full model
+  full <- full %>% 
+    anova() %>% 
+    slice_tail(1) %>% 
+    select(1:2)
+  
+  # Get df and sum of squares from reduced model
+  reduced <- reduced %>% 
+    anova() %>% 
+    slice_tail(1) %>% 
+    select(1:2)
+  
+  # Create empty tibble
+  byo_anova <- tibble(
+    "source" = character(),
+    "df" = numeric(),
+    "SS" = numeric(),
+    "MS" = numeric(),
+    "F" = numeric(),
+    "P-Value" = numeric()
   )
+  
+  # Label rows
+  byo_anova[1,1] <- "Model"
+  byo_anova[2,1] <- "Error"
+  byo_anova[3,1] <- "Total"
+  
+  # Copy ANOVA values for df
+  byo_anova[3,2] <- reduced$Df
+  byo_anova[2,2] <- full$Df
+  byo_anova[1,2] <- byo_anova$df[3] - byo_anova$df[2]
+  
+  # Copy ANOVA values for sum of squares
+  byo_anova[3,3] <- reduced$`Sum Sq`
+  byo_anova[2,3] <- full$`Sum Sq`
+  byo_anova[1,3] <- byo_anova$SS[3] - byo_anova$SS[2]
+  
+  # Calculate MS
+  byo_anova[2,4] <- byo_anova$SS[2] / byo_anova$df[2]
+  byo_anova[1,4] <- byo_anova$SS[1] / byo_anova$df[1]
+  
+  # Calculate F
+  byo_anova[1,5] <- byo_anova$MS[1] / byo_anova$MS[2]
+  
+  # Calculate P-value
+  byo_anova[1,6] <- pf(byo_anova$F[1], byo_anova$df[2], byo_anova$df[1], lower.tail = FALSE)
+  
+  byo_anova
+}
 
-byo_anova[1,6] <- pf(byo_anova$F[1], byo_anova$df[2], byo_anova$df[1], lower.tail = FALSE)
+byo <- build_own_anova(model, model_reduced)
+```
 
-byo_anova <- na_if(byo_anova, 0)
-
-options(knitr.kable.NA = '')
-
-byo_anova %>% 
+```{r fig.cap="Build your own ANOVA"}
+byo %>% 
   kable() %>% 
   kable_styling("striped")
 ```
