@@ -1,0 +1,199 @@
+---
+title: "DS6371 FInal Exam"
+author: "Travis Deason"
+date: "12/9/2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+library(mvtnorm)
+library(survival)
+library(splines)
+library(multcomp)
+library(DescTools)
+library(agricolae)
+library(ggplot2)
+library(Hmisc)
+```
+
+## Lo
+
+```{r}
+plastic <- read.csv('data/plastic_fixed.csv')
+names(plastic) = sapply(names(plastic), tolower)
+names(plastic)
+plastic = plastic[,c("bacteria","plastic","region","temperature")]
+```
+
+### (12 pts.) Conduct a two-sample t-test to test the claim that the mean plastic level (in ounces) is greater in the West Pacific than in the East. Be sure to address the assumptions of the test.  For the actual test, please provide only the conclusion with a p-value and a confidence interval, and finish with a scope of inference that addresses causality (if the result is significant) and the generalizability of the result. 
+
+```{r}
+east <- subset(plastic, region == 'EAST')
+west <- subset(plastic, region == 'WEST')
+east_plastic = east$plastic
+west_plastic = west$plastic
+mean(east_plastic)
+mean(west_plastic)
+hist(east_plastic)
+hist(west_plastic)
+qqnorm(east_plastic)
+qqnorm(west_plastic)
+t.test(east_plastic, west_plastic , 'greater')
+qt(.95, 102)
+```
+* The null hypothesis is that the east and west side of the pacific have the same amount of plastic
+* The alternative hypothesis is that the west pacific has more plastic then the east pacific
+* For this expired we will set the significance level to .95.  Since the Data-set are large, but the variances are not equal we will use welchs' t-test
+* The critical T-statistic at 102.98 degrees of freedom is 1.65993
+* The confidence interval for our null hypothesis at .95 is 2172.295 to 2123.008
+* Since the mean plastic observed in the west pacific is 2172; which is in our confidence interval, we fail to reject the null hypothesis with a p value of .3404
+
+
+### (12 pts.) Fit a simple linear regression model with the plastic level as the response and the Ideonella sakaiensis (bacteria) level as the explanatory variable. If the slope is significantly different from zero, provide a scatter plot with the regression line superimposed on the data. In addition, interpret the slope of the regression equation and include a confidence interval.  Finally, interpret the intercept and include a confidence interval. Please address all relevant assumptions and include relevant plots to support those assumptions.
+
+```{r}
+model <- lm(plastic~bacteria, data=plastic)
+#summary(model)
+min(plastic$plastic)
+slope <- model$coefficients[2]
+intercept <- model$coefficients[1]
+pred.int =  predict(model, interval="prediction")
+#Confidence intervals
+conf.int =  predict(model, interval="confidence")
+plastic$pred.lower <- pred.int[,2]
+plastic$pred.upper <- pred.int[,3]
+plastic$ci.upper <- conf.int[,2]
+plastic$ci.lower <- conf.int[,3]
+plot(model$residuals)
+ggplot(data=plastic, aes(x=bacteria, y=plastic, main='Scatterplot of plastic vs Bacteria')) + 
+    geom_point(color= 'red') +
+    geom_abline(intercept=intercept, slope=slope, color='black', size=.2) +
+    geom_ribbon(data=plastic, aes(ymin= pred.lower, ymax= pred.upper), fill = "blue", alpha = 0.2) +
+    geom_ribbon(data=plastic, aes(ymin= ci.lower, ymax= ci.upper), fill = "violet", alpha = 0.3) 
+
+
+## Removing the observation which seems like it may be too extreme to be a real value
+no_outlier <- subset(plastic, plastic > 110)
+model2 <- lm(plastic~bacteria, data=no_outlier)
+summary(model2)
+slope <- model2$coefficients[2]
+intercept <- model2$coefficients[1]
+t_val <- qt(.975, 104)
+print(t_val)
+print('intercept confidence interval, min, max')
+print(intercept - t_val * 30.4810)
+print(intercept + t_val * 30.4810)
+print('slope confidence interval, min, max')
+print(slope - t_val * 0.1567)
+print(slope + t_val * 0.1567)
+conf.int2 =  predict(model2, interval="confidence")
+pred.int2 =  predict(model2, interval="prediction")
+no_outlier$pred.lower <- pred.int2[,2]
+no_outlier$pred.upper <- pred.int2[,3]
+no_outlier$ci.upper <- conf.int2[,2]
+no_outlier$ci.lower <- conf.int2[,3]
+qqnorm(model2$residuals)
+plot(model2$residuals)
+ggplot(data=no_outlier, aes(x=bacteria, y=plastic, main='Scatterplot of plastic vs Bacteria')) + 
+    geom_point(color= 'red', size=.2) +
+    geom_abline(intercept=intercept, slope=slope, color='black') +
+    geom_ribbon(data=no_outlier, aes(ymin= pred.lower, ymax= pred.upper), fill = "blue", alpha = 0.2) +
+    geom_ribbon(data=no_outlier, aes(ymin= ci.lower, ymax= ci.upper), fill = "violet", alpha = 0.3)
+```
+
+* In the linear model of Bacteria verses plastic there is one value for plastic 107.5526 which is so much lower then the remaining values that it is geometrically impossible.  Using the models shown above, this point was removed from the data-set, as it caused model residuals to be non-randomly distributed.  This point which more accurately shows the data.  Since there is the possibility that the point was an actual observation, we will assume the scope of inference only covers plastic levels over 110 for this model.  For the purposes of the remainder of this study, this observation will not be included.
+
+
+* Model two meets all of the assumptions of linear regression.  The residuals are normally distributed with equal variance, the 
+
+* With the new model (model2), the null hypothesis is that there is no relationship between the amount of plastic in the water and the bacteria level
+* The alternative hypothesis is that there is a relationship between the amount of plastic in the water and the bacteria levels
+* The significance level for this test is .95
+* The critical t-value for this test is 1.983038
+* Based on a t-test with 104 degrees of freedom, the confidence interval for the intercept is 4069.338 to 4190.228, and for the slope -10.80825 -10.18677.
+* The p-value for this test is ~0 (too low to represent with double precision floating point)
+* Based on the test values, we reject the null hypothesis that plastic and bacteria levels in the ocean are unrelated.  There is strong evidence to suggest that an increase in bacteria in the ocean is correlated with an increase of plastic.  Since this was an observational study, we cannot assume the relationship is causal, as there may be confounding variables.
+
+
+* The critical values for our model are: The intercept is 4129, meaning if there was no remaining plastic in the ocean, we would expect to see a bacteria level per milliliter of 4129  The slope of the line is -10.49  Meaning that for each 10 additional bacteria, we would expect to see one less kilogram of plastic.
+
+
+### (10 pts.) Next, the researchers want to test the claim that the relationship (slope) between the Ideonella sakaiensis level and the plastic level were different between the East and the West Pacific. Add the necessary variable(s) to the model to test for this difference. Provide a copy of the parameter estimate table along with a short (1 or 3 sentences) conclusion about whether the slopes are significantly different for the East and the West, supported with a p-value and a confidence interval. You may assume the assumptions for your model are met.
+
+```{r}
+no_outlier$is_west =  no_outlier$region == 'WEST'
+west_model <- lm(plastic~(bacteria*is_west), data=no_outlier)
+summary(west_model)
+t.val = qt(.975, 102)
+print('interaction confidence interval, min, max')
+dslope <- west_model$coefficients[4]
+print(dslope - t.val * 0.3024)
+print(dslope + t.val * 0.3024)
+```
+
+* The relationship between bacteria and plastic levels in the west pacific is different by -.4786 bacteria per kilogram of plastic.  The response to bacteria by plastic appears to be stronger in the west then east pacific.  This relationship is not strong enough to be considered statistically significant at a alpha of .05 as the confidence interval is from -1.078 to .1212, and the p-value is .1166
+
+
+### (6 pts.) Next, researchers want to revisit the claim that the mean plastic level is different in the West and East Pacific (similar to the claim tested in part (1), although this time they want to use additional information: the level of Ideonella sakaiensis in the water as well). Fit a model that regresses the plastic level (response) against the bacterial level (explanatory variable) and assume equal slopes for the East and the West to test this claim. Again, provide a copy of the parameter estimate table of the model used to answer this question as well as a scatter plot with the regression lines superimposed.  Again, provide a short (1 to 3 sentence) conclusion providing guidance as to which mean is greater or if there is no evidence to suggest a difference.  Your analysis should be supported by p-value(s) and confidence interval(s).  You may assume the assumptions for your model are met.
+
+
+```{r}
+t.crit = qt(.95, 102)
+print(t.crit)
+regional_model <- lm(plastic~bacteria + is_west, data=no_outlier)
+summary(regional_model)
+slope.r <- regional_model$coefficients[2]
+intercept.r <- regional_model$coefficients[1]
+offset.r <- regional_model$coefficients[3]
+print(offset.r - t.val * 16.3758)
+print(offset.r + t.val * 16.3758)
+ggplot(data=no_outlier, aes(x=bacteria, y=plastic, main='Scatterplot of plastic vs Bacteria')) + 
+    geom_point(color= 'black', size=.3) +
+    geom_abline(intercept=intercept.r, slope=slope.r, color='red') +
+    geom_abline(intercept=intercept.r + offset.r, slope=slope.r, color='blue')
+```
+
+* The null hypothesis is that there is no difference in the levels of plastic in the east and west pacific.
+* The alternative hypothesis is that there is more plastic in the east pacific then the west pacific
+* For this experiment, we will use a one sided t-test on a significance level of .95
+* The critical t-value for this test is at 103 degrees of freedom 1.65993.
+* The confidence interval for this test is 18.317 to 83.27966 kg of plastic per square kilometer
+* The p-value for this test is .00248
+* Based on the test data, we can reject the null hypothesis with a t-value of 3.102.  There i  evidence to suggest that there is a greater level of trash in the west pacific then the east pacific which is statistically significant at an alpha of .05.  Since this study was observational and not experiential, we cannot infer the relationship is causal.
+
+
+### (10 pts.) Researchers have a special interest in a section of the Pacific Ocean about 20 miles off the coast of California (in the EAST Pacific Ocean). The researchers know that the level of Ideonella sakaiensis in the area is 170 bpml and would like to predict the level of the plastic in the East Pacific Ocean where the Ideonella sakaiensis level is 170 bpml. Write a short (1 to 3 sentence) response that includes an estimate of the plastic level for this individual sample with the appropriate interval (confidence or prediction, as appropriate). 
+
+```{r}
+vals = data.frame('is_west' = TRUE, 'bacteria' =  170)
+predict(regional_model, vals, interval="prediction", level=.95)
+```
+
+* The predicted plastic level in the west Pacific ocean for a bacteria level of 170 bpml is 2371 +/- 168 kg/km*km, or 2203 - 2539 at a .95 significance level.
+
+
+## BONUS
+
+###(max 3 pts.) The researchers want to test if the findings of the test in part 4 were confounded with the temperature effect. Given the analysis thus far, fit a model that will test this claim. Again, provide a copy of the parameter estimate table of the model used to answer the question. Write a short (1 to 3 sentence) response supported by p-value(s) and confidence interval(s). 
+
+
+```{r}
+mean(west$temperature)
+mean(east$temperature)
+temp_model <- lm(plastic~(temperature*is_west), data=no_outlier)
+summary(temp_model)
+t.val = qt(.975, 102)
+print(t.val)
+print('interaction confidence interval, min, max')
+dslope <- west_model$coefficients[4]
+print(dslope - t.val * 17.406)
+print(dslope + t.val * 17.406)
+```
+
+* The null hypothesis is that there is no regionally dependent relationship between temperature and levels of plastic in the ocean.
+* The alternative hypothesis is that the relationship between temperature and plastic levels in the ocean is different between west and east regions of the pacific.
+* The critical t-value for this test at 102 degrees of freedom is 1.9835
+* The confidence interval we obtain for the slope of the interaction term between temperature and plastic levels for east and west pacific is -35.0033 and 34.04614
+* the p-value for this test .880
+* based on this test data, we fail to retest the null hypothesis at a significance level of .95 with a slope of 15.313 kg/mi*mi and a p value of .888.  There is not sufficient evidence to suggest that regional differences in temperature can explain the regional difference in plastic observed in the ocean.
+
