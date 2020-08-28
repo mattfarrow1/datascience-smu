@@ -1,0 +1,119 @@
+---
+title: "Unit 2: Basketball"
+author: "Matt Farrow"
+date: "8/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(hrbrthemes)
+```
+
+```{r include=FALSE}
+df <- read_csv(here::here("6306", "week 02", "PlayersBBall.csv"), 
+               col_types = cols(birth_date = col_date(format = "%B %d, %Y")))
+```
+
+## Data Wrangling
+
+```{r}
+# Examine the data
+glimpse(df)
+
+# Split up positions
+df <- df %>% 
+  mutate(pos_f = str_detect(df$position, "F"),
+         pos_g = str_detect(df$position, "G"),
+         pos_c = str_detect(df$position, "C"))
+
+# Convert height
+df <- df %>% 
+  separate(height, c('feet', 'inches'), "-", convert = TRUE) %>% 
+  mutate(cm = (12*feet + inches)*2.54)
+
+# Examine the cleaned data
+glimpse(df)
+```
+
+## FLS Questions
+
+1. Use the PlayerBBall.csv dataset to visually represent (summarize) the number of players in each position. 
+
+```{r}
+df %>% 
+  select(pos_f,
+         pos_g,
+         pos_c) %>% 
+  pivot_longer(cols = c("pos_f", "pos_g", "pos_c"),
+               names_to = "position", 
+               values_to = "plays") %>% 
+  group_by(position) %>% 
+  count(plays) %>% 
+  filter(plays == TRUE) %>% 
+  ungroup() %>% 
+  ggplot(aes(position, n)) +
+  geom_col(fill = "steelblue") +
+  scale_x_discrete(labels = c("Center", "Forward", "Guard")) +
+  labs(title = "How are players distributed by position?",
+       x = "Position",
+       y = "Players",
+       caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  theme_ipsum()
+```
+
+2. Use the dataset to visually investigate if the distribution of the weight of centers (C) is greater than the distribution of the weight of forwards (F).  
+
+```{r}
+df %>% 
+  filter(pos_c != TRUE) %>% 
+  pivot_longer(cols = c("pos_f", "pos_g"),
+               names_to = "where", 
+               values_to = "plays") %>% 
+  filter(plays == TRUE) %>% 
+  group_by(where) %>% 
+  summarise(mean_wt = mean(weight, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  ggplot(aes(where, mean_wt)) +
+  geom_col(fill = "steelblue") +
+  scale_x_discrete(labels = c("Forward", "Guard")) +
+  labs(title = "Do Centers have a greater average weight than Forwards?",
+       x = "Position",
+       y = "Mean Weight (lbs)",
+       caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  theme_ipsum()
+```
+
+3. Use the dataset to visually investigate if the distribution of the height of centers (C) is greater than the distribution of the height of forwards (F).
+
+```{r}
+df %>% 
+  filter(pos_g != TRUE) %>% 
+  pivot_longer(cols = c("pos_f", "pos_c"),
+               names_to = "where", 
+               values_to = "plays") %>% 
+  filter(plays == TRUE) %>% 
+  group_by(where) %>% 
+  summarise(mean_ht = mean(cm, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  ggplot(aes(where, mean_ht)) +
+  geom_col(fill = "steelblue") +
+  scale_x_discrete(labels = c("Forward", "Guard")) +
+  labs(title = "What are the average heights of Centers and Forwards?",
+       x = "Position",
+       y = "Mean Height (cm)",
+       caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  theme_ipsum()
+
+```
+
+4. Use the dataset to visually investigate if the distribution of height is different between any of the positions.  
+
+5. Use the dataset to investigate how the player’s height is related to the player’s weight. How does height change as the weight changes?  
+
+6. Is their any difference in the relationship between height and weight between positions?  Are height and weight related differently for different positions.
+
+7. A historian would like to investigate the claim that the heights of players have increased over the years.  Analyze this claim graphically / visually. 
+
+8. Create a 3D plot of height vs. weight vs. year and color code the points by position.  
