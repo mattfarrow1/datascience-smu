@@ -1,0 +1,37 @@
+---
+title: 'Unit 2: Education'
+author: "Matt Farrow"
+date: "8/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(hrbrthemes)
+library(scales)
+```
+
+```{r}
+# Read data
+df <- read_csv(here::here("6306", "week 02", "Education_Income.csv"))
+
+# Convert education level to a factor
+df$Educ <- as_factor(df$Educ)
+df$Educ <- fct_relevel(df$Educ, "<12", "12", "13-15", "16", ">16")
+
+# Plot
+df %>% 
+  group_by(Educ) %>% 
+  summarise(mean_income = mean(Income2005)) %>% 
+  ungroup() %>% 
+  ggplot(aes(Educ, mean_income)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "How does the distribution of mean incomes change as\neducation level rises?",
+       x = "Education Level",
+       y = "Mean Income") +
+  scale_y_continuous(labels = dollar) +
+  theme_ipsum()
+```
+
+
