@@ -39,8 +39,6 @@ glimpse(df)
 
 ## FLS Questions
 
-1. Use the PlayerBBall.csv dataset to visually represent (summarize) the number of players in each position. 
-
 ```{r}
 df %>% 
   select(pos_f,
@@ -63,7 +61,6 @@ df %>%
   theme_ipsum()
 ```
 
-2. Use the dataset to visually investigate if the distribution of the weight of centers (C) is greater than the distribution of the weight of forwards (F).  
 
 ```{r}
 df %>% 
@@ -72,20 +69,15 @@ df %>%
                names_to = "where", 
                values_to = "plays") %>% 
   filter(plays == TRUE) %>% 
-  group_by(where) %>% 
-  summarise(mean_wt = mean(weight, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  ggplot(aes(where, mean_wt)) +
-  geom_col(fill = "steelblue") +
+  ggplot(aes(where, weight)) +
+  geom_boxplot() +
   scale_x_discrete(labels = c("Forward", "Guard")) +
-  labs(title = "Do Centers have a greater average weight than Forwards?",
+  labs(title = "Is the distribution of the weight of Centers greater than Forwards?",
        x = "Position",
-       y = "Mean Weight (lbs)",
+       y = "Weight (lbs)",
        caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
   theme_ipsum()
 ```
-
-3. Use the dataset to visually investigate if the distribution of the height of centers (C) is greater than the distribution of the height of forwards (F).
 
 ```{r}
 df %>% 
@@ -94,26 +86,63 @@ df %>%
                names_to = "where", 
                values_to = "plays") %>% 
   filter(plays == TRUE) %>% 
-  group_by(where) %>% 
-  summarise(mean_ht = mean(cm, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  ggplot(aes(where, mean_ht)) +
-  geom_col(fill = "steelblue") +
-  scale_x_discrete(labels = c("Forward", "Guard")) +
-  labs(title = "What are the average heights of Centers and Forwards?",
+  ggplot(aes(where, cm)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = c("Center", "Forward")) +
+  labs(title = "Is the distribution of the height of Centers greater than Forwards?",
+       x = "Position",
+       y = "Height (cm)",
+       caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  theme_ipsum()
+```
+
+```{r}
+df %>% 
+  pivot_longer(cols = c("pos_f", "pos_g", "pos_c"),
+               names_to = "where", 
+               values_to = "plays") %>% 
+  filter(plays == TRUE) %>% 
+  ggplot(aes(where, cm)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = c("Forward", "Guard", "Center")) +
+  labs(title = "Is the distribution of heights different between\nany of the positions?",
        x = "Position",
        y = "Mean Height (cm)",
        caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
   theme_ipsum()
-
 ```
 
-4. Use the dataset to visually investigate if the distribution of height is different between any of the positions.  
+```{r}
+df %>% 
+  pivot_longer(cols = c("pos_f", "pos_g", "pos_c"),
+               names_to = "where", 
+               values_to = "plays") %>% 
+  filter(plays == TRUE) %>% 
+  ggplot(aes(cm, weight, color = where)) +
+  geom_jitter(alpha = 0.3) +
+  labs(title = "How is a player's height related to weight?",
+       subtitle = "And is there any difference in the relationship between positions?",
+       x = "Height (cm)",
+       y = "Weight (lbs)",
+       color = "Position",
+       caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  scale_color_discrete(labels = c("Center", "Forward", "Guard")) +
+  theme_ipsum()
+```
 
-5. Use the dataset to investigate how the player’s height is related to the player’s weight. How does height change as the weight changes?  
-
-6. Is their any difference in the relationship between height and weight between positions?  Are height and weight related differently for different positions.
-
-7. A historian would like to investigate the claim that the heights of players have increased over the years.  Analyze this claim graphically / visually. 
+```{r}
+df %>% 
+  group_by(year_start) %>% 
+  summarise(mean_height = mean(cm)) %>% 
+  ungroup() %>% 
+  ggplot(aes(year_start, mean_height)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(title = "How have player's heights changed over the years?",
+       x = "Start Year",
+       y = "Mean Height (cm)",
+       caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  theme_ipsum()
+```
 
 8. Create a 3D plot of height vs. weight vs. year and color code the points by position.  
