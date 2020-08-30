@@ -73,7 +73,7 @@ df %>%
   ggplot(aes(where, weight)) +
   geom_boxplot() +
   scale_x_discrete(labels = c("Forward", "Guard")) +
-  labs(title = "Is the distribution of the weight of Centers greater than Forwards?",
+  labs(title = "Is the distribution of the weight of Centers greater than\nForwards?",
        x = "Position",
        y = "Weight (lbs)",
        caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
@@ -89,7 +89,7 @@ df %>%
   filter(plays == TRUE) %>% 
   ggplot(aes(cm, fill = where)) +
   geom_histogram(ins = 15, position = "dodge", alpha = 0.5) +
-  labs(title = "Is the distribution of the height of Centers greater than Forwards?",
+  labs(title = "Is the distribution of the height of Centers greater than\nForwards?",
        x = "Position",
        y = "Height (cm)",
        fill = "Position",
