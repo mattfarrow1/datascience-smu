@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(hrbrthemes)
+library(plotly)
 ```
 
 ```{r include=FALSE}
@@ -86,13 +87,14 @@ df %>%
                names_to = "where", 
                values_to = "plays") %>% 
   filter(plays == TRUE) %>% 
-  ggplot(aes(where, cm)) +
-  geom_boxplot() +
-  scale_x_discrete(labels = c("Center", "Forward")) +
+  ggplot(aes(cm, fill = where)) +
+  geom_histogram(ins = 15, position = "dodge", alpha = 0.5) +
   labs(title = "Is the distribution of the height of Centers greater than Forwards?",
        x = "Position",
        y = "Height (cm)",
+       fill = "Position",
        caption = "some players may play multiple positions\nsource: NBA basketball players from 1950-2018") +
+  scale_fill_discrete(labels = c("Center", "Forward")) +
   theme_ipsum()
 ```
 
@@ -145,4 +147,16 @@ df %>%
   theme_ipsum()
 ```
 
-8. Create a 3D plot of height vs. weight vs. year and color code the points by position.  
+```{r}
+df %>% 
+  pivot_longer(cols = c("pos_f", "pos_g", "pos_c"),
+               names_to = "where", 
+               values_to = "plays") %>% 
+  filter(plays == TRUE) %>% 
+  plot_ly(x = ~cm, y = ~weight, z = ~year_start, color = ~where) %>% 
+  add_markers() %>% 
+  layout(scene = list(xaxis = list(title = "Height (cm)"),
+                      yaxis = list(title = "Weight (lbs)"),
+                      zaxis = list(title = "Start Year")))
+```
+
