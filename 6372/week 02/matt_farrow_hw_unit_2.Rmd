@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## HW Instructions
 
-The weekly HW assignments are designed to accomplish 2 goals for the MSDS student. The first is to provide a series of conceptual and analtical questions so the student can get a feel for their current understanding of the unit. The second goal is to introduce the students to standard functions and routines in R that effectively do the same things that the "Procs" do in SAS.
+The weekly HW assignments are designed to accomplish 2 goals for the MSDS student. The first is to provide a series of conceptual and analytical questions so the student can get a feel for their current understanding of the unit. The second goal is to introduce the students to standard functions and routines in R that effectively do the same things that the "Procs" do in SAS.
 
 R and SAS are both wonderful tools and as we go through the assignments, students will begin to recognize very quickly that they both have pros and cons. 
 
@@ -30,7 +30,7 @@ The formatting of the HW is as follows:
  
  3.Thirdly, a new data set will be given to allow the student to gain some experience with a new data set from start to finish. This part of the homework is for your own practice and is not due at the time of HW submission.
  
-Solutions to the HW will be provided a day or two after the HW is submitted. It is up to the student to "shore up" any confusion or missunderstanding of a topic. Grading will be based on a combination of correctness, completion, and overall conciseness. 
+Solutions to the HW will be provided a day or two after the HW is submitted. It is up to the student to "shore up" any confusion or misunderstanding of a topic. Grading will be based on a combination of correctness, completion, and overall conciseness. 
 
 ## MLR Conceptual questions
 
