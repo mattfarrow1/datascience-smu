@@ -40,3 +40,7 @@ vignettes/*.pdf
 
 # DS_Store
 .DS_Store
+
+# Secrets
+static/data/secret-keys.R
+static/data/secret-vault.vault
