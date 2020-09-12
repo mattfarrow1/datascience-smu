@@ -1,0 +1,148 @@
+---
+title: "6306: Week 3 FLS"
+author: "Matt Farrow"
+date: "9/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(XML)
+library(rvest)
+library(RCurl)
+library(gt)
+library(hrbrthemes)
+```
+
+## Baltimore Restaurant Data
+
+You have been hired by a restaurateur to some research on Sushi restaurants in Baltimore. You have come across data on the web contained in the following XML [file](https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml).
+
+### Scrape the XML page for name, zip code and city council district. (Use either the XML or rvest package.)
+
+```{r scrape-data, warning=FALSE, message=FALSE}
+# Read data
+baltimore <- read_html("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml")
+
+# Names
+baltimore_names <- html_nodes(baltimore, "name")
+baltimore_names <- str_sub(baltimore_names, start = 7, end = -8)
+
+# Zip codes
+baltimore_zip <- html_nodes(baltimore, "zipcode")
+baltimore_zip <- as.numeric(str_sub(baltimore_zip, 10, -11))
+
+# Council districts
+baltimore_council <- html_nodes(baltimore, "councildistrict")
+baltimore_council <- as.numeric(str_sub(baltimore_council, 18, -19))
+```
+
+### Make a data frame with just those columns.
+
+```{r make-tibble}
+# Make tibble
+restaurants <- tibble(name = baltimore_names,
+                      zip_code = baltimore_zip,
+                      council_district = baltimore_council)
+
+# Look at tibble
+glimpse(restaurants)
+```
+
+### Are there any Sushi restaurants in Baltimore? If so, can you estimate how many?
+
+```{r sushi?}
+sushi <- restaurants %>% 
+  filter(name %in% str_subset(restaurants$name, regex("sushi", ignore_case = TRUE)))
+
+sushi %>% 
+  gt() %>% 
+  tab_header(title = "Sushi Restaurants in Baltimore") %>% 
+  cols_label(name = "Restaurant Name",
+             zip_code = "Zip",
+             council_district = "Council District")
+```
+
+### Filter the data frame for just downtown restaurants (Council District 11). Are there any Sushi restaurants downtown? If so, estimate how many “Sushi” restaurants are in Downtown
+
+```{r}
+sushi %>% 
+  filter(council_district == 11) %>% 
+    gt() %>% 
+  tab_header(title = "Sushi Restaurants in Downtown Baltimore") %>% 
+  cols_label(name = "Restaurant Name",
+             zip_code = "Zip",
+             council_district = "Council District")
+```
+
+### Make a bar plot of the estimated number of restaurants (Sushi or otherwise) in each council.
+
+```{r, include=FALSE, message=FALSE, warning=FALSE}
+districts <- tibble(
+  council_district = c(1:14),
+  locale = c(
+    "Southeast",
+    "Northeast",
+    "Morgan State, Harford Road",
+    "North",
+    "Northwest",
+    "Park Heights, Roland Park",
+    "Mondawmin",
+    "Edmondson Village, Forest Part",
+    "West",
+    "Southwest",
+    "Downtown",
+    "Greenmount, Jonestown",
+    "McElderry Park",
+    "Charles Village"
+  )
+)
+
+restaurants <- left_join(restaurants, districts)
+
+restaurants$locale <- as_factor(restaurants$locale)
+restaurants$locale <- fct_relevel(
+  restaurants$locale,
+  "Southeast",
+  "Northeast",
+  "Morgan State, Harford Road",
+  "North",
+  "Northwest",
+  "Park Heights, Roland Park",
+  "Mondawmin",
+  "Edmondson Village, Forest Part",
+  "West",
+  "Southwest",
+  "Downtown",
+  "Greenmount, Jonestown",
+  "McElderry Park",
+  "Charles Village"
+)
+```
+
+```{r}
+restaurants %>% 
+  count(locale) %>% 
+  ggplot(aes(n, locale)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Number of Restaurants by Council District\nin Baltimore",
+       x = "Restaurants",
+       y = "Council District") +
+  theme_ipsum()
+```
+
+## Freestyle
+
+
+
+Install and load one of the packages given in the list for downloading APIs (or another API you have found and are interested in).
+Download data from that API and create a slide that clearly describes the package and how (the code) to download data from that API. 
+Clearly describe the data and the columns / variables that are of interest to your presentation. 
+Perform a small EDA with your data. Use plots and possibly tests, to find 2 interesting characteristics of the data that you accessed through the API. 
+Create a PPT presentation to show in the live session.
+Show part or all of the data and make sure to show the data are tidy. 
+Include at least 1 plot or chart from ggplot. 
+You should have no more than five slides (including the title slide).
+ Include your code. 
+Also include a discussion of any obstacles you ran into and went around or over in the process… there will inevitably be one and likely more. 
