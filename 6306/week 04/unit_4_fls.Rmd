@@ -1,5 +1,5 @@
 ---
-title: "6306: Week 3 FLS"
+title: "6306: Week 4 FLS"
 author: "Matt Farrow"
 date: "9/12/2020"
 output: html_document
@@ -134,15 +134,98 @@ restaurants %>%
 
 ## Freestyle
 
+1. Install and load one of the packages given in the list for downloading APIs (or another API you have found and are interested in).
+2. Download data from that API and create a slide that clearly describes the package and how (the code) to download data from that API. 
+3. Clearly describe the data and the columns / variables that are of interest to your presentation. 
+4. Perform a small EDA with your data. Use plots and possibly tests, to find 2 interesting characteristics of the data that you accessed through the API. 
+5. Create a PPT presentation to show in the live session.
+6. Show part or all of the data and make sure to show the data are tidy. 
+7. Include at least 1 plot or chart from ggplot. 
+8. You should have no more than five slides (including the title slide).
+9. Include your code. 
 
+Also include a discussion of any obstacles you ran into and went around or over in the process… there will inevitably be one and likely more.
 
-Install and load one of the packages given in the list for downloading APIs (or another API you have found and are interested in).
-Download data from that API and create a slide that clearly describes the package and how (the code) to download data from that API. 
-Clearly describe the data and the columns / variables that are of interest to your presentation. 
-Perform a small EDA with your data. Use plots and possibly tests, to find 2 interesting characteristics of the data that you accessed through the API. 
-Create a PPT presentation to show in the live session.
-Show part or all of the data and make sure to show the data are tidy. 
-Include at least 1 plot or chart from ggplot. 
-You should have no more than five slides (including the title slide).
- Include your code. 
-Also include a discussion of any obstacles you ran into and went around or over in the process… there will inevitably be one and likely more. 
+### Set Up Secrets & Twitter Authentication
+
+Here I'm using the `secret` package to securely store my API keys so they're not in plaintext in my code. Since I sync my files up to GitHub, I didn't want to have those publicly available. I also ended up using the `rtweet` package instead of the `twitteR` package.
+
+```{r}
+library(secret)
+library(rtweet)
+
+# Set up secrets
+my_vault <- here::here("static", "data", "secret-vault.vault")
+mattfarrow_private_key <- file.path("~", "r_vault")
+
+# Get Twitter API keys
+twitter_api_key <-
+  get_secret("twitter_api_key", key = mattfarrow_private_key, vault = my_vault)
+twitter_api_secret_key <-
+  get_secret("twitter_api_secret_key", key = mattfarrow_private_key, vault = my_vault)
+twitter_access_token <- 
+  get_secret("twitter_access_token", key = mattfarrow_private_key, vault = my_vault)
+twitter_access_token_secret <- 
+  get_secret("twitter_access_token_secret", key = mattfarrow_private_key, vault = my_vault)
+
+# Setup Twitter access
+create_token(
+  app = "DataScience@SMU",
+  consumer_key = twitter_api_key,
+  consumer_secret = twitter_api_secret_key,
+  access_token = twitter_access_token,
+  access_secret = twitter_access_token_secret,
+  set_renv = TRUE
+)
+```
+
+### Visualizing a Graph of Retweet Relationships
+
+Using the Twitter API, I thought I'd try my hand at visualizing a grph of retweet relationships using an example from [Bob Rudis](https://rud.is/books/21-recipes/visualizing-a-graph-of-retweet-relationships.html.
+
+```{r}
+library(igraph)
+library(ggraph)
+
+# Search for #rstats tweets
+rstats <- search_tweets("#rstats", n=1500)
+
+# Look at the data
+glimpse(rstats)
+
+# Find the retweets (using the API-provided data) & expand out all the mentioned
+# screen names
+rt_g <- rstats %>% 
+  filter(retweet_count > 0) %>% 
+  select(screen_name, mentions_screen_name) %>%
+  unnest(mentions_screen_name) %>% 
+  filter(!is.na(mentions_screen_name)) %>% 
+  graph_from_data_frame()
+
+V(rt_g)$node_label <- unname(ifelse(degree(rt_g)[V(rt_g)] > 30, names(V(rt_g)), "")) 
+V(rt_g)$node_size <- unname(ifelse(degree(rt_g)[V(rt_g)] > 30, degree(rt_g), 0)) 
+```
+
+```{r}
+ggplot(tibble(y = degree_distribution(rt_g), x = 1:length(y))) +
+  geom_segment(aes(x, y, xend = x, yend = 0), color = "slateblue") +
+  scale_y_continuous(expand = c(0, 0), trans = "sqrt") +
+  labs(x = "Degree", y = "Density (sqrt scale)", title = "#rstats Retweet Degree Distribution") +
+  theme_ipsum_rc(grid = "Y", axis = "x")
+```
+
+```{r}
+ggraph(rt_g, layout = "linear", circular = TRUE) +
+  geom_edge_arc(edge_width = 0.125, aes(alpha = ..index..)) +
+  geom_node_label(aes(label = node_label, size = node_size),
+    label.size = 0, fill = "#ffffff66", segment.colour = "springgreen",
+    color = "slateblue", repel = TRUE, family = font_rc, fontface = "bold"
+  ) +
+  coord_fixed() +
+  scale_size_area(trans = "sqrt") +
+  labs(title = "Retweet Relationships", subtitle = "Most retweeted screen names labeled. Darkers edges == more retweets. Node size == larger degree") +
+  theme_graph(base_family = font_rc) +
+  theme(legend.position = "none")
+
+```
+The biggest obstacle I ran into was in trying to set up the `secrets` package in R. It was a bit of a challenge to translate the vignettes I found online into a working solution, and was exacerbated by my trying to put something in parenthases that shouldn't have been, but I figured it out in the end. 
