@@ -15,6 +15,8 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(hrbrthemes)
+options(scipen = 50)
 ```
 
 ## HW Instructions
@@ -35,13 +37,23 @@ Solutions to the HW will be provided a day or two after the HW is submitted. It 
 
 ## ANOVA Conceptual Questions
 
- 1. State the necessary assumptions for Two-Way ANOVA analysis to be conducted. Note: Additive versus non-additive is not a component of the assumptions.
+1. **State the necessary assumptions for Two-Way ANOVA analysis to be conducted. Note: Additive versus non-additive is not a component of the assumptions.**
+
+  - Residuals are normally distributed
+  - Constant variance
+  - Independent observations
  
- 2. State in your own words what it means for there to be an "interaction" between two explanatory variables. Note: Do not explain the meaning in terms of a graph with parallel lines. 
+2. **State in your own words what it means for there to be an "interaction" between two explanatory variables. Note: Do not explain the meaning in terms of a graph with parallel lines.**
+
+An interaction occurs when there exists a relationship between two or more explanatory variables that affect the results.
  
- 3. What is the familywise error rate? What is multiple testing and why is it an issue when conducting ANOVA type models such as Two-Way ANOVA?
+3. **What is the familywise error rate? What is multiple testing and why is it an issue when conducting ANOVA type models such as Two-Way ANOVA?**
+
+The familywise error rate is the probability of making at least one Type I error across all all variables in the model. Multiple testing is the process of running several tests simultaneously. The issue with multiple testing and ANOVA-type models is that the ANOVA process, by its nature, runs several tests at the same time. It is possible to have a Type I error in one part of the ANOVA testing, but not have that impact the results. 
  
- 4. True or False? The overall Type-III sums of squares F-test's allow the analyst to determine where specific differences lie between levels of the factor.
+4. **True or False? The overall Type-III sums of squares F-test's allow the analyst to determine where specific differences lie between levels of the factor.**
+
+True.
  
 ## Exercise #1: ACT Scores Revisited
 
@@ -50,10 +62,10 @@ The first step in any analysis is appropriately describing the data both numeric
 The following code reads in the ACT data set from our pre-live discussion and provides a handy, modifiable function that can make a quick summary statistics table. 
  
 ```{r summaries}
-ACT <- read_csv(here::here("6372", "week 03", "MathACT.csv"))
+ACT <- read.csv(here::here("6372", "week 03", "MathACT.csv"), stringsAsFactors = TRUE)
 
 # Create a function and a summary stats table.
-# Note: In line 44 below, you can add other statistics like median, IQR,etc.
+# Note: In line 60 below, you can add other statistics like median, IQR,etc.
 
 mysummary <- function(x) {
   result <- c(length(x), mean(x), sd(x), sd(x) / length(x))
@@ -67,28 +79,54 @@ sumstats
  
 With the three levels of background and two levels of sex status, the table provides the sample size, mean, standard deviation, and the means standard error for each of the 6 combinations of the two factors combined. This can be used to take a quick look at the data to see if things are making sense. Adding additional summaries like the max, min, and quartiles would be helpful as well. 
  
-The above table may not be too aesthetically pleasing. Luckily, under the current format of the table, its quite easy to generate a means profile plot to visualize the data. This graphic was most likely a major point of discussion during live session. 
+The above table may not be too aesthetically pleasing. Luckily, under the current format of the table, it's quite easy to generate a means profile plot to visualize the data. This graphic was most likely a major point of discussion during live session. 
 
 ```{r meanplot}
 ggplot(sumstats, aes(x = Background, y = Mean, group = Sex, colour = Sex)) +
   ylab("ACT Score") +
   geom_line() +
   geom_point() +
-  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = .1)
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = .1) +
+  labs(title = "Means Plot Using SE") +
+  theme_ipsum() +
+  theme(legend.position = "bottom")
 ```
 
 ### Homework Question 1
 
-1. Modify the previous R script so that the summary table also includes the min, the max, and IQR. These functions are all self explanatory...min(x), max(x), IQR(x).
+1. **Modify the previous R script so that the summary table also includes the min, the max, and IQR. These functions are all self explanatory...min(x), max(x), IQR(x).**
 
-2. Create another means plot but rather than using the standard errors (SE) to make the error bars. Make it with the raw standard deviations (SD). Which graphic (compared to plot using SE) is more telling about the assumption of equal variances for the ANOVA model? Give a little explanation for your answer.
+```{r summaries-2}
+mysummary <- function(x) {
+  result <- c(length(x), min(x), max(x), mean(x), sd(x), IQR(x), sd(x) / length(x))
+  names(result) <- c("N", "Min", "Max", "Mean", "SD", "IQR", "SE")
+  return(result)
+}
+sumstats <- aggregate(Score ~ Background * Sex, data = ACT, mysummary)
+sumstats <- cbind(sumstats[, 1:2], sumstats[, -(1:2)])
+sumstats
+```
 
+2. **Create another means plot but rather than using the standard errors (SE) to make the error bars. Make it with the raw standard deviations (SD). Which graphic (compared to plot using SE) is more telling about the assumption of equal variances for the ANOVA model? Give a little explanation for your answer.**
+
+```{r meanplot-2}
+ggplot(sumstats, aes(x = Background, y = Mean, group = Sex, colour = Sex)) +
+  ylab("ACT Score") +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = Mean - SD, ymax = Mean + SD), width = .1) +
+  labs(title = "Means Plot Using SD") +
+  theme_ipsum() +
+  theme(legend.position = "bottom")
+```
+
+Using the standard deviation (SD) instead of the standard error (SE) allows us to assess constant variance. In looking at the error bars on the SE plot, there isn't enough variation to plausibly say the lines are parallel, whereas the error bars on the SD plot are large enough to allow for the possibility of this being an additive model. 
 
 ## Exercise #2: Conducting a Two-Way ANOVA Analysis in R
 
-Since Two-Way ANOVA's are technically just special cases of multiple linear regression, it's not to suprising that the same function call is used to build the model. After viewing and exploring the data via Exercise 1. The next step would be to fit a full non-additive model, check the assumptions of the model, and then examine the type III sums of squares F tables.
+Since Two-Way ANOVA's are technically just special cases of multiple linear regression, it's not too surprising that the same function call is used to build the model. After viewing and exploring the data via Exercise 1 the next step would be to fit a full non-additive model, check the assumptions of the model, and then examine the type III sums of squares F-tables.
 
-The following code fits the non-additive two way ANOVA model and then produces the first the main residual diagnostics for assumption checking. Noe that the syntax for including interaction terms is slightly different.
+The following code fits the non-additive two-way ANOVA model and then produces the main residual diagnostics for assumption checking. Note that the syntax for including interaction terms is slightly different.
 
 ```{r modelfit}
 model.fit <- aov(Score ~ Background + Sex + Background:Sex, data = ACT)
@@ -98,7 +136,7 @@ qqnorm(model.fit$residuals)
 ```
 
 The previous graphics are not very pretty. We can use the ggplot2 package to jazz things up a bit.
-```{r , fig.height=2}
+```{r, message=FALSE, fig.height=2}
 library(gridExtra)
 myfits <- data.frame(fitted.values = model.fit$fitted.values, residuals = model.fit$residuals)
 
@@ -121,14 +159,14 @@ plot3 <- ggplot(myfits, aes(x = residuals)) +
 grid.arrange(plot1, plot2, plot3, ncol = 3)
 ```
 
-As discussed in class, the residual diagnostics do not provide any concern about the assumptions of a two way anova analysis. If there were, we would have to address those concerns via a transformation of the response or multiple analysis with and without outliers, etc. Examining the type-III sums of squares F table we have:
+As discussed in class, the residual diagnostics do not provide any concern about the assumptions of a two-way ANOVA analysis. If there were, we would have to address those concerns via a transformation of the response or multiple analysis with and without outliers, etc. Examining the Type-III sums of squares F-table we have:
 
-```{r}
+```{r, message=FALSE}
 library(car)
 Anova(model.fit, type = 3)
 ```
 
-Writing contrasts are a little more cumbersome in R. To help you guys out and alleviate the need to keep track of all of the zero's and one's, I've written a little script that allows you to just specify the contrast that you want in a slightly simpler way. But first let's use some tools that provides a blanket lists of comparisons. Since there is no significant interaction, we just need to examine each factor one at a time. To examine all pairwise comparisons for say "background", the following script provides the t-test results adjusted for multiple tests using Tukey's procedure.
+Writing contrasts are a little more cumbersome in R. To help you guys out and alleviate the need to keep track of all of the zero's and one's, I've written a little script that allows you to just specify the contrast that you want in a slightly simpler way. But first let's use some tools that provides a blanket lists of comparisons. Since there is no significant interaction, we just need to examine each factor one at a time. To examine all pairwise comparisons for "background", the following script provides the t-test results adjusted for multiple tests using Tukey's procedure.
 
 ```{r}
 TukeyHSD(model.fit, "Background", conf.level = .95)
@@ -146,7 +184,7 @@ TukeyHSD(model.fit, "Background:Sex", conf.level = .95)
 plot(TukeyHSD(model.fit, "Background:Sex", conf.level = .95))
 ```
 
-As discussed in class, including all possible combinations of comparisons may be too much and of little interest to the actual study at hand. We can manually create the comparisons of interest and manual adjust the p-values through writing contrasts. To help streamline this for you, I've included a little R script that makes the process more automated for you. 
+As discussed in class, including all possible combinations of comparisons may be too much, and of little interest, to the actual study at hand. We can manually create the comparisons of interest and manually adjust the p-values through writing contrasts. To help streamline this for you, I've included a little R script that makes the process more automated for you. 
 
 The following script allow you to write out your contrasts in a more verbal syntax. I'll run you through the most tedious scenario. The script can be easily modified to handle simpler situations. First things first, all you need to do is provide some details as to what comparisons you'd like to make. Suppose, that if the interaction was significant, the only meaningful comparisons to make in the analysis comparing males versus females for each level of background. 
 
@@ -157,13 +195,13 @@ mycontrast <- c("amale-afemale", "bmale-bfemale", "cmale-cfemale")
 dat <- ACT
 ```
 
-The above piece of code provides no output, but formats things for the following code to run. The key player here is the "contrast.factor" and the "mycontrast" objects. The contrast.factor piece is just specifiying what types of comparisons you would like to make. For example, if we only wanted to compare the background levels we would have just specified "~Background". The "mycontrast" object is where you get to specify what comparisons you would like to make. For a single factor, you just simply write out the factor levels you want to compare with a subtration between them. For an interaction type comparison the syntax depends on what was used in the contrast.factor object. In our example, background is listed first, so when making comparisons the levels of background are concatenated to the levels of Sex before subtracting which combinations you want to compare.
+The above piece of code provides no output, but formats things for the following code to run. The key player here is the `contrast.factor` and the `mycontrast` objects. The `contrast.factor` piece is just specifying what types of comparisons you would like to make. For example, if we only wanted to compare the background levels we would have just specified `~Background`. The `mycontrast` object is where you get to specify what comparisons you would like to make. For a single factor, you just simply write out the factor levels you want to compare with a subtraction between them. For an interaction type comparison the syntax depends on what was used in the `contrast.factor` object. In our example, background is listed first, so when making comparisons the levels of background are concatenated to the levels of Sex before subtracting which combinations you want to compare.
 
 The following code is something I wrote that takes the information you specified above and creates a clean table of results with Bonferroni adjusted p-values. This script can be reused over and over, just changing the initial starting script is all that is required.
 
 ```{r}
-# Running a loop that determines the appropriate 0's and 1's for each
-# contrast specified above.
+# Running a loop that determines the appropriate 0's and 1's for each contrast
+# specified above.
 library(limma)
 final.result <- c()
 for (j in 1:length(mycontrast)) {
@@ -177,35 +215,40 @@ for (j in 1:length(mycontrast)) {
   for (i in 1:length(contrast.factor.names)) {
     contrast.factor.2[[i]] <- levels(dat[, contrast.factor.names[i]])
   }
-  new.factor.levels <- do.call(paste, c(do.call(expand.grid,
-                                                contrast.factor.2), sep = ""))
+  new.factor.levels <- do.call(paste, c(do.call(
+    expand.grid,
+    contrast.factor.2
+  ), sep = ""))
   temp.cont <- mycontrast[j]
-  
-  ### HERE IS WHERE THE PROBLEM IS
-  
+
   contrast2 <- list(comparison = as.vector(do.call(
     makeContrasts,
     list(contrasts = temp.cont, levels = new.factor.levels)
   )))
-  
-  contrast.result <- summary(contrast(lsmeans(model.fit,
-                                              contrast.factor), contrast2, by = NULL))
-  
+
+  contrast.result <- summary(contrast(lsmeans(
+    model.fit,
+    contrast.factor
+  ), contrast2, by = NULL))
+
   final.result <- rbind(final.result, contrast.result)
 }
 
-# Cleaning up and applying Bonferroni correction to the number
-# of total comparisons investigated.
+# Cleaning up and applying Bonferroni correction to the number of total
+# comparisons investigated.
 final.result$contrast <- mycontrast
 final.result$bonf <- length(mycontrast) * final.result$p.value
 final.result$bonf[final.result$bonf > 1] <- 1
 
+# Print final result
 final.result
 ```
 
 ### Homework Question 2
 
-Consider comparing the mean ACT scores of males versus females specifically for background A. Compare the outputs from the Tukey comparison result table to that of the output generated from my manual contrast maker. Is the estimated differences the same? Can you explain why are the adjusted p-values different for the two result tables? One would suggest that we reject the null while the other would have us to fail to reject. (This is just a conceptual thinking question. The interaction term is not significant for this data analysis.)
+**Consider comparing the mean ACT scores of males versus females specifically for background A. Compare the outputs from the Tukey comparison result table to that of the output generated from my manual contrast maker. Are the estimated differences the same? Can you explain why the adjusted p-values are different for the two result tables? One would suggest that we reject the null while the other would have us to fail to reject. (This is just a conceptual thinking question. The interaction term is not significant for this data analysis.)**
+
+The estimated differences from the Tukey comparison as well as Dr. Turner's manual contrast are the same (2.3851626), however the adjusted p-values are different (0.0854058 vs. 0.0080551020 for Tukey and manual contrast, respectively). 
 
 ## Exercise #3 
 
@@ -216,10 +259,149 @@ library(Sleuth3)
 head(ex1317)
 ```
 
-1. Provide a means plot of the data. Use this, along with any additional information, to comment on whether an additive or non-additive model is most appropriate.
+1. **Provide a means plot of the data. Use this, along with any additional information, to comment on whether an additive or non-additive model is most appropriate.**
 
-2. Fit a non-additive two-way ANOVA model to the data set and provide the residual diagnostics. Comment on the appropriateness of the current ANOVA fit.
+```{r}
+# Store data
+iridium <- ex1317
 
-3. Provide the Type III ANOVA F-tests. Answer the following question using the table. Do the potential changes in mean Iridium by strata depend on the depth?
+# Log transform iridium
+iridium <- iridium %>% 
+  mutate(log_iridium = log(Iridium))
 
-4. Using multiple testing techniques, determine what factors (or combinations) contribute to changes in mean iridium.
+# Look at data
+head(iridium)
+
+# Create summary statistics
+mysummary <- function(x) {
+  result <- c(length(x), min(x), max(x), mean(x), sd(x), IQR(x), sd(x) / length(x))
+  names(result) <- c("N", "Min", "Max", "Mean", "SD", "IQR", "SE")
+  return(result)
+}
+iridium_stats <- aggregate(log_iridium ~ DepthCat * Strata, data = iridium, mysummary)
+iridium_stats <- cbind(iridium_stats[, 1:2], iridium_stats[, -(1:2)])
+
+# Create means plot
+iridium_stats %>%
+  ggplot(aes(
+    x = DepthCat,
+    y = Mean,
+    group = Strata,
+    colour = Strata
+  )) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = Mean - SD, ymax = Mean + SD), width = .1) +
+  labs(title = "Means Plot Using SD",
+       y = "log(Iridium)") +
+  theme_ipsum() +
+  theme(legend.position = "bottom")
+```
+
+I first ran this plot using the raw data and the lines were all over the place. I ran it again, this time log-transforming the Iridium count. Although the error bars show promise of overlap, at DepthCat 3 and 4, there is still no overlap. It appears this is a non-additive model.
+
+2. **Fit a non-additive two-way ANOVA model to the data set and provide the residual diagnostics. Comment on the appropriateness of the current ANOVA fit.**
+
+```{r}
+# Build model
+model_fit <- aov(log_iridium ~ DepthCat + Strata + DepthCat:Strata, data = iridium)
+
+# Create fits
+model_fit2 <- tibble(fitted_values = model_fit$fitted.values,
+                    residuals = model_fit$residuals)
+
+# Residual vs Fitted
+plot1 <- ggplot(model_fit2, aes(x = fitted_values, y = residuals)) +
+  ylab("Residuals") +
+  xlab("Predicted") +
+  geom_point()
+
+# QQ plot of residuals #Note the diagonal abline is only good for qqplots of normal data.
+plot2 <- ggplot(model_fit2, aes(sample = residuals)) +
+  stat_qq() +
+  geom_abline(
+    intercept = mean(model_fit2$residuals),
+    slope = sd(model_fit2$residuals)
+  )
+
+# Histogram of residuals
+plot3 <- ggplot(model_fit2, aes(x = residuals)) +
+  geom_histogram(
+    aes(y = ..density..),
+    binwidth = 1,
+    color = "black",
+    fill = "gray"
+  ) +
+  geom_density(alpha = .1, fill = "red")
+
+# Arrange plots
+grid.arrange(plot1, plot2, plot3, ncol = 3)
+```
+
+In the first plot, the residuals appear to be fairly randomly distributed using the log-transformed Iridium counts. The Q-Q plot does show some deviations from normality towards the left side of the plot, although it is difficult to tell if this is simply due to the small sample size. The histogram of residuals also shows a slight bump around -2 on the x-axix, which combined with the three outliers on the first plot and the slight deviation from normality in the second plot give me pause. I'm not sure however what else to do at this point and will proceed with the transformation that I've made so far. 
+
+3. **Provide the Type-III ANOVA F-tests. Answer the following question using the table. Do the potential changes in mean Iridium by strata depend on the depth?**
+
+```{r}
+Anova(model_fit, type = 3)
+```
+
+Based on the ANOVA table, it doesn't appear that the interaction between DepthCat and Strata is significant (p-value = 0.78658). The only significant result was DepthCat (p-value 0.02313).
+
+4. **Using multiple testing techniques, determine what factors (or combinations) contribute to changes in mean iridium.**
+
+```{r}
+TukeyHSD(model_fit, "DepthCat", conf.level = .95)
+plot(TukeyHSD(model_fit, "DepthCat", conf.level = .95))
+```
+
+In looking at the table of results, it appeas that the only significant interaction is at 6-3 (p-value = 0.0048473).
+
+```{r}
+contrast.factor <- ~ Strata * DepthCat
+mycontrast <- c(6-3)
+
+dat <- iridium
+
+final.result <- c()
+
+for (j in 1:length(mycontrast)) {
+  contrast.factor.names <-
+    gsub(" ", "", unlist(strsplit(
+      as.character(contrast.factor),
+      split = "*",
+      fixed = T
+    ))[-1])
+  contrast.factor.2 <- vector("list", length(contrast.factor.names))
+  for (i in 1:length(contrast.factor.names)) {
+    contrast.factor.2[[i]] <- levels(dat[, contrast.factor.names[i]])
+  }
+  new.factor.levels <- do.call(paste, c(do.call(
+    expand.grid,
+    contrast.factor.2
+  ), sep = ""))
+  temp.cont <- mycontrast[j]
+
+  contrast2 <- list(comparison = as.vector(do.call(
+    makeContrasts,
+    list(contrasts = temp.cont, levels = new.factor.levels)
+  )))
+
+  contrast.result <- summary(contrast(lsmeans(
+    model_fit,
+    contrast.factor
+  ), contrast2, by = NULL))
+
+  final.result <- rbind(final.result, contrast.result)
+}
+
+# Cleaning up and applying Bonferroni correction to the number of total
+# comparisons investigated.
+final.result$contrast <- mycontrast
+final.result$bonf <- length(mycontrast) * final.result$p.value
+final.result$bonf[final.result$bonf > 1] <- 1
+
+# Print final result
+final.result
+```
+
