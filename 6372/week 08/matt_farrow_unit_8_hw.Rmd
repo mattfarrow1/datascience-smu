@@ -19,53 +19,77 @@ editor_options:
 3. What is a confusion matrix? 
 4. What is the difference between LDA and QDA, that is, what assumption of the LDA model is relaxed?
 
-##Exercise 1: Visualizing LDA and QDA
+## Exercise 1: Visualizing LDA and QDA
 
 As discussed in live session, LDA has some nice geometrical representations that can be really helpful. The examples for this exercise are simulated to illustrate the point and facilitate learning. This is typically not done in practice unless you are working in the special case of using exactly 2 predictors. 
 
-Lets consider a simple example with two predictors trying to predict a response with two categories (Yes and No). However, only one of the predictors, "X2" is really helpful in predicting. The following script simulates a data set and generates a visualization so we can see what we have. I encourage you to take a quick view of the data set "Full" so you can see the structure of the data set in which LDA will be applied later. 
+Let's consider a simple example with two predictors trying to predict a response with two categories (Yes and No). However, only one of the predictors, "X2" is really helpful in predicting. The following script simulates a data set and generates a visualization so we can see what we have. I encourage you to take a quick view of the data set "Full" so you can see the structure of the data set in which LDA will be applied later. 
 
-```{r,echo=TRUE, fig.height=3.5}
-
+```{r echo=TRUE, fig.height=3.5}
 library(MASS)
 library(mvtnorm)
 set.seed(1234)
+
+# Create yes and no vectors
 dataYes <- mvrnorm(30, c(10, 10), matrix(c(1, .8, .8, 1), 2, 2, byrow = T))
 dataNo <- mvrnorm(30, c(10, 7), matrix(c(1, .8, .8, 1), 2, 2, byrow = T))
-full <- rbind(dataYes, dataNo)
-full <- data.frame(full)
-full$Response <- rep(c("Yes", "No"), each = 30)
-full$Response <- factor(full$Response)
-names(full)[1:2] <- c("X1", "X2")
+
+# Bind yes and no together into a data frame
+full <- data.frame(rbind(dataYes, dataNo))
+
+# Add yes/no column as a factor
+full$Response <- factor(rep(c("Yes", "No"), each = 30))
+
+# Plot data
 plot(full[, 1:2], col = full$Response, main = "Shift in X2")
 ```
 
-You can see, from the graphic above that the predictor X2 is really whats important here as the two clouds of points are essentially the same just shifted upward. As discussed during live session, what we need for LDA is that the point clouds for the two response categories should have similar elliptical shapes. Gross departures from this would require the use of QDA instead.
+You can see from the graphic above that the predictor X2 is really what's important here as the two clouds of points are essentially the same, just shifted upward. As discussed during live session, what we need for LDA is for the point clouds for the two response categories to have similar elliptical shapes. Gross departures from this would require the use of QDA instead.
 
-Building an LDA model is probably the easiest of all the prediction models to run syntactically. The first line of the following step is all that is needed to fit the model. The remaining codes which produces the prediction boundary of the LDA on the scatter plot, again are not used in practice, but to help visualize what it is helpful for these simple example to see what LDA is doing. The two plus signs added to figure are just the sample means of the predictors for each response group.
+Building an LDA model is probably the easiest of all the prediction models to run syntactically. The first line of the following step is all that is needed to fit the model. The remaining code that produces the prediction boundary of the LDA on the scatter plot isn't used in practice, but is helpful for this example to see what LDA is doing. The two plus signs added to figure are just the sample means of the predictors for each response group.
+
 ```{r}
-# construct the LDA model
+# Construct the LDA model
 mylda <- lda(Response ~ X1 + X2, data = full)
 
-# draw discrimination line
+# Draw discrimination line
 np <- 300
-nd.x <- seq(from = min(full$X1), to = max(full$X1), length.out = np)
-nd.y <- seq(from = min(full$X2), to = max(full$X2), length.out = np)
+nd.x <- seq(
+  from = min(full$X1),
+  to = max(full$X1),
+  length.out = np
+)
+nd.y <- seq(
+  from = min(full$X2),
+  to = max(full$X2),
+  length.out = np
+)
 nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "Shift in X2")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
+
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 ```
 
-__Homework Questions__
+### Question 5
 
-5. Consider the following simulated data set where now both predictors are helpful in predicting the response. Rinse and repeat the previous code and produce a plot with the LDA prediction boundary to see how things have changed from our first scenario. As long as you store your LDA model in an object called "mylda", you should not have to modify any of the script to obtain the prediction boundary plot.
+Consider the following simulated data set where both predictors are now helpful in predicting the response. Rinse and repeat the previous code and produce a plot with the LDA prediction boundary to see how things have changed from our first scenario. As long as you store your LDA model in an object called "mylda", you should not have to modify any of the script to obtain the prediction boundary plot.
 
 ```{r, echo=T}
 # Another scenario
@@ -78,10 +102,55 @@ full$Response <- factor(full$Response)
 names(full)[1:2] <- c("X1", "X2")
 ```
 
-6. One of the options of LDA is to incorporate prior information. Use the ?lda for details on the prior option. Suppose now that for new data sets coming in that we wish to predict on, we know that 80% of the time they are going to be a "Yes" outcome. Incorporate the prior information and examine how the prediction boundary of LDA has changed.
+```{r}
+# Construct the LDA model
+mylda <- lda(Response ~ X1 + X2, data = full)
 
-##Exercise 2: LDA is not robust against outliers?
-7. Using the data set generated in number 5, add an additional data point (X1=11,X2=0,Response="Yes"). You can do this simply by doing something like this.
+# Draw discrimination line
+np <- 300
+nd.x <- seq(
+  from = min(full$X1),
+  to = max(full$X1),
+  length.out = np
+)
+nd.y <- seq(
+  from = min(full$X2),
+  to = max(full$X2),
+  length.out = np
+)
+nd <- expand.grid(X1 = nd.x, X2 = nd.y)
+
+prd <- as.numeric(predict(mylda, newdata = nd)$class)
+
+plot(full[, 1:2], col = full$Response, main = "Shift in X2")
+
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
+
+contour(
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
+)
+```
+
+### Question 6
+
+One of the options of LDA is to incorporate prior information. Use the ?lda for details on the prior option. Suppose now that for new data sets coming in that we wish to predict on, we know that 80% of the time they are going to be a "Yes" outcome. Incorporate the prior information and examine how the prediction boundary of LDA has changed.
+
+## Exercise 2: LDA is not Robust Against Outliers?
+
+### Question 7
+
+Using the data set generated in number 5, add an additional data point (X1=11,X2=0,Response="Yes"). You can do this simply by doing something like this.
+
 ```{r, echo=T}
 full[61, 1] <- 11
 full[61, 2] <- 0
@@ -89,7 +158,7 @@ full[61, 3] <- "Yes"
 ```
 Provide the LDA prediction boundary (no priors this time) for this data set with the additional point. Verify that the observation is an outlier. Does the prediction boundary change? 
 
-##Exercise 3: LDA and QDA are susceptible to overfitting
+## Exercise 3: LDA and QDA are susceptible to overfitting
 
 The following exercise will illustrate the fact that like any predictive model, the fears of over and under fitting are still present for LDA. It is often referred to as the "curse of dimensionality"" in multivariate statistics. In addition to this concept, the following scripts will provide a good starting point in producing training and test set splits and generation of confusion matrices to assess model accuracy.
 
@@ -140,28 +209,31 @@ The following code runs a simple LDA on the training data set, predicts the obse
 
 ```{r}
 mylda <- lda(Response ~ X1 + X2, data = train)
-pred <- predict(mylda, newdata = test)$class # Predictions can come in many forms, the class form provides the categorical level of your response.
+
+# Predictions can come in many forms, the class form provides the categorical level of your response.
+pred <- predict(mylda, newdata = test)$class 
 Truth <- test$Response
-x <- table(pred, Truth) # Creating a confusion matrix
+
+# Creating a confusion matrix
+x <- table(pred, Truth) 
 x
-# Missclassification Error
+
+# Misclassification Error
 ME <- (x[2, 1] + x[1, 2]) / 1000
 ME
+
 # Calculating overall accuracy
 1 - ME
 ```
 So the overall prediction accuracy is pretty good as expected, around 83%. 
 
-__Homework Questions__
-8. Refit the LDA model using the first 10 predictors (X1-X10) and then again using all 20 predictors. For each of the model fits produce the confusion matrix on the test set and the overall accuracy. Does including unnecessary predictors damages LDA's ability to predict future values?
+### Question 8
 
+Refit the LDA model using the first 10 predictors (X1-X10) and then again using all 20 predictors. For each of the model fits produce the confusion matrix on the test set and the overall accuracy. Does including unnecessary predictors damages LDA's ability to predict future values?
 
+## Additional examples to play with. No more assignments.
 
-
-
-##Additional Examples to play with. No more assignments.
-
-__QDA__
+### QDA
 
 Running QDA instead of LDA is simple enough. Just use the qda function instead of the lda function. Everything else is the same. It is important to realize that QDA includes more parameters in the actual model fit so it can potentially overfit a data set as well if the assumptions of LDA are met. However, if the sample sizes are large relative to the number of predictors being included in the model, then QDA suffers little from overfitting.
 
@@ -173,6 +245,7 @@ The code producing these results is rather lengthy. You can refer to the R markd
 par(mfrow = c(1, 4))
 
 library(MASS)
+
 # Another scenario
 set.seed(12)
 dataYes <- mvrnorm(15, c(10, 10), matrix(c(1, .6, .6, 1), 2, 2, byrow = T))
@@ -183,10 +256,10 @@ full$Response <- rep(c("Yes", "No"), each = 15)
 full$Response <- factor(full$Response)
 names(full)[1:2] <- c("X1", "X2")
 
-# construct the model
+# Construct the model
 mylda <- qda(Response ~ X1 + X2, data = full)
 
-# draw discrimination line
+# Draw discrimination line
 np <- 300
 nd.x <- seq(from = min(full$X1), to = max(full$X1), length.out = np)
 nd.y <- seq(from = min(full$X2), to = max(full$X2), length.out = np)
@@ -210,22 +283,39 @@ full$Response <- rep(c("Yes", "No"), each = 30)
 full$Response <- factor(full$Response)
 names(full)[1:2] <- c("X1", "X2")
 
-# construct the model
+# Construct the model
 mylda <- qda(Response ~ X1 + X2, data = full)
 
-# draw discrimination line
+# Draw discrimination line
 np <- 300
-nd.x <- seq(from = min(full$X1), to = max(full$X1), length.out = np)
-nd.y <- seq(from = min(full$X2), to = max(full$X2), length.out = np)
+nd.x <- seq(
+  from = min(full$X1),
+  to = max(full$X1),
+  length.out = np
+)
+nd.y <- seq(
+  from = min(full$X2),
+  to = max(full$X2),
+  length.out = np
+)
 nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "30 obs/group")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 
 # Another scenario
@@ -249,10 +339,19 @@ nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "300 obs/group")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 
 # Another scenario
@@ -264,10 +363,10 @@ full$Response <- rep(c("Yes", "No"), each = 3000)
 full$Response <- factor(full$Response)
 names(full)[1:2] <- c("X1", "X2")
 
-# construct the model
+# Construct the model
 mylda <- qda(Response ~ X1 + X2, data = full)
 
-# draw discrimination line
+# Draw discrimination line
 np <- 300
 nd.x <- seq(from = min(full$X1), to = max(full$X1), length.out = np)
 nd.y <- seq(from = min(full$X2), to = max(full$X2), length.out = np)
@@ -276,14 +375,23 @@ nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "3000 obs/group")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 ```
 
-__When QDA bests LDA__
+### When QDA Bests LDA
 
 In the example below, here the LDA assumptions are violated since the red population is negatively correlated while the black population is positively correlated (equal cov is not met). QDA is more appropriate here as the quadratic curvature in the prediction boundary reflects the different correlation structures.
 
@@ -310,10 +418,19 @@ nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "QDA")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 
 set.seed(1234)
@@ -337,10 +454,19 @@ nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "LDA")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 ```
 
@@ -372,10 +498,19 @@ nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "QDA")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 
 set.seed(1234)
@@ -399,9 +534,18 @@ nd <- expand.grid(X1 = nd.x, X2 = nd.y)
 prd <- as.numeric(predict(mylda, newdata = nd)$class)
 
 plot(full[, 1:2], col = full$Response, main = "LDA")
-points(mylda$means, pch = "+", cex = 2, col = c("black", "red"))
+points(
+  mylda$means,
+  pch = "+",
+  cex = 2,
+  col = c("black", "red")
+)
 contour(
-  x = nd.x, y = nd.y, z = matrix(prd, nrow = np, ncol = np),
-  levels = c(1, 2), add = TRUE, drawlabels = FALSE
+  x = nd.x,
+  y = nd.y,
+  z = matrix(prd, nrow = np, ncol = np),
+  levels = c(1, 2),
+  add = TRUE,
+  drawlabels = FALSE
 )
 ```
