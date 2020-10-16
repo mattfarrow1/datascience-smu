@@ -18,6 +18,8 @@ library(tidyverse)
 library(hrbrthemes)
 library(tseries)
 library(forecast)
+library(scales)
+library(gt)
 options(scipen = 50)
 ```
 
@@ -43,25 +45,36 @@ The student may provide their answers in a separate word document. Just make sur
 
 1. State the necessary requirements for a time series to be stationary.
 
+  **For a time series to be stationary, the mean, variance and autocorrelation should not change over time.**
+
 2. TRUE or FALSE? If a time series model includes an explanatory variable such as time itself or some other predictor, then the original time series of the response is not stationary. 
+
+  **False**
 
 3. What is the major draw back of having serially correlated observations?
 
+  **Sample averages tend to be further away from the long-run mean.**
+
 4. What is the major advantage of having serially correlated observations?
 
+  **Forcasating with serially correlated observations is more successful.**
+
 5. What is the purpose of the Durbin Watson test?
+
+  **The purpose of the Durbin Watson test is to verify that the residuals from a least-squares regression are not autocorrelated with the residuals of an AR(1) model.**
 
 ## Exercise #1 
 
 Simulating time series data to help with ACF and PACF diagnostics.
 
-The most common issue that students have with time series is reading/interpreting the ACF and PACF diagnostic plots and using the rules of thumb to help identify what correlation structures should be used. The following scripts are going to provide you with simulated data sets in which we know how the correlation structure truly is (AR(1), AR(2), ...etc.). We will then look at the diagnostics and general graphics to see how things can change depending on sample size and just repeated sampling.
+The most common issue that students have with time series is reading/interpreting the ACF and PACF diagnostic plots and using the rules of thumb to help identify what correlation structures should be used. The following scripts are going to provide you with simulated data sets in which we know how the correlation structure truly is (AR(1), AR(2), ... etc.). We will then look at the diagnostics and general graphics to see how things can change depending on sample size and repeated sampling.
 
-The following codes provide simulations of various time series models discussed in class. Let's examine the AR(1) model first to get familiar with some of the R syntax.
+The following code provides simulations of various time series models discussed in class. Let's examine the AR(1) model first to get familiar with some of the R syntax.
 
 The following code provides a stationary AR(1) model with a lag 1 autocorrelation of 0.8. To help visualize the diagnostics more cleanly, I have simulated 10,000 observations. There are three plots. The first is time series itself which is hard to make anything form it since there are so many data points. The remaining two are the ACF and PACT respectively.
 
-_AR1 Behavior_
+**AR1 Behavior**
+
 ```{r Data Exhibiting AR1 Behavior}
 AR1 <- arima.sim(list(ar = c(0.8)), 10000) # AR1 is just a vector of values. They will be centered around 0 unless we add a shift or include some other source of variation like a predictor.
 par(mfrow = c(1, 3))
@@ -74,10 +87,29 @@ pacf(AR1, main = "PACF")
 
 6. Using the rules of thumb table provided in live session, verify that the simulated data does in fact exhibit the same behaviors in the ACF and PACF plots that an AR(1) model would have. Verify also that the lag1 autocorrelation value is roughly 0.8 as expected.
 
-7. Repeat the previous code but only simulate a data set that has 50 observations rather than 10,000. Generate the same 3 plots that were generated before. Repeat this process 2 more times, each one having only 50 observations. The point of this exercise is to recognize in smaller data sets, the ACF and PACF plots are not perfect and gives the student some experience on the variation of the plots from data set to set (like examining qqplots for residual assumption checking in regression or anova).
+  **The ACF and PACF plots do indeed appear to exhibit the same behaviors that an AR(1) model should have, namely the ACF plot showing a general downward trend and the PACT plot showing an immediate drop off. The lag(1) autocorrelation is also roughly 0.8.**
+
+7. Repeat the previous code but only simulate a data set that has 50 observations rather than 10,000. Generate the same 3 plots that were generated before. Repeat this process 2 more times, each one having only 50 observations. The point of this exercise is to recognize in smaller data sets, the ACF and PACF plots are not perfect and gives the student some experience on the variation of the plots from data set to set (like examining qqplots for residual assumption checking in regression or ANOVA).
+
+```{r}
+sample_ar1 <- function(x, y) {
+  AR1 <- arima.sim(list(ar = c(x)), y)
+  par(mfrow = c(1, 3))
+  plot(1:y, AR1, type = "l")
+  acf(AR1, main = "ACF")
+  pacf(AR1, main = "PACF")
+}
+
+sample_ar1(0.8, 50)
+sample_ar1(0.8, 50)
+sample_ar1(0.8, 50)
+```
 
 8. If the lag 1 autocorrelation of a AR(1) model is set to 0, then there is no serial correlation present in the data. This is what we would like to see when we actually fit a time series model to the data, the resulting residuals from that model should behave uncorrelated (aka "white noise"). Simulate this senario using the above code and provide the ACF and PACF plots. This is what time series data (or residuals from a time series model) looks like when no serial correlation is present.
 
+```{r}
+sample_ar1(0, 1000)
+```
 
 ## Exercise 2: More Time Series Model examples
 
@@ -85,10 +117,11 @@ pacf(AR1, main = "PACF")
 
 9. For each of the following scenarios, run the script and provide the 3 graphics. Verify that the ACF and PACF plots match the rules of thumb description for there specific scenario.
 
-_AR2 Behavior_
-```{r echo=T, fig.keep = 'none'}
-rho1 <- .8
-rho2 <- .6
+**AR(2) Behavior**
+
+```{r}
+rho1 <- 0.8
+rho2 <- 0.6
 a1 <- (rho1 * (1 - rho2) / (1 - rho1^2))
 a2 <- (rho2 - rho1^2) / (1 - rho1^2)
 AR2 <- arima.sim(list(ar = c(a1, a2)), 10000)
@@ -98,9 +131,9 @@ acf(AR2)
 pacf(AR2, main = "PACF")
 ```
 
-_AR3 Behavior_
-```{r echo=T, fig.keep = 'none'}
+**AR(3) Behavior**
 
+```{r}
 a1 <- 1.5
 a2 <- -1.21
 a3 <- .46
@@ -111,9 +144,9 @@ acf(AR3, main = "ACF")
 pacf(AR3, main = "PACF")
 ```
 
-_ARMA(3,2) Behavior_
-```{r echo=T, fig.keep = 'none'}
+**ARIMA(3, 2) Behavior**
 
+```{r}
 a1 <- 1.5
 a2 <- -1.21
 a3 <- .46
@@ -126,9 +159,9 @@ acf(ARMA32, main = "ACF")
 pacf(ARMA32, main = "PACF")
 ```
 
-_Moving Average MA(2) Behavior_
-```{r echo=T, fig.keep = 'none'}
+**Moving Average MA(2) Behavior**
 
+```{r}
 b1 <- .2
 b2 <- .9
 MA2 <- arima.sim(list(ma = c(b1, b2)), 10000)
@@ -138,7 +171,7 @@ acf(MA2, main = "ACF")
 pacf(MA2, main = "PACF")
 ```
 
-###Exercise 3: A good, simple example of time series
+### Exercise 3: A good, simple example of time series
 
 One of your fellow MSDS students was curious if he could model the fluctuations he sees in his electric bill. The data is included in Unit 4 zipped folder with the title "ElectricBill.csv". In addition to just the amount due each month, he thought it might be helpful to include a predictor that could help aid in prediction. The potential predictor was the average monthly temperature of the city he lived in (Fort Worth). 
 
@@ -149,11 +182,17 @@ bills <- read_csv(here::here("6372", "week 04", "ElectricBill.csv"))
 head(bills)
 bills$DateIndex <- 1:nrow(bills)
 
-ggplot() +
-  geom_line(data = bills, aes(x = DateIndex, y = Bill))
+bills %>% 
+ggplot(aes(DateIndex, Bill)) +
+  geom_line() +
+  scale_y_continuous(labels = dollar) +
+  labs(title = "Time Series Plot of Electric Bill",
+       x = "Date Index",
+       y = "Bill Amount") +
+  theme_ipsum()
 ```
 
-The plot of electric bill overtime appears to show some cyclic behavior as expected. At face value, it appears that the time series has a common mean and variability appears to be roughly constant. The fact that high peaks tend to be pretty sharp while the valleys tend to be drawn out is a little bit of concern and could benefit from a log transformation. Before doing that, let's examine the ACF and PACF plots on the original data set.
+The plot of electric bill over time appears to show some cyclic behavior as expected. At face value, it appears that the time series has a common mean and variability appears to be roughly constant. The fact that high peaks tend to be pretty sharp while the valleys tend to be drawn out is a little bit of concern and could benefit from a log transformation. Before doing that, let's examine the ACF and PACF plots on the original data set.
 
 ```{r}
 attach(bills)
@@ -187,8 +226,35 @@ tsdisplay(residuals(AR1), lag.max = 15, main = "AR(1) Resid. Diagnostics")
 ### Homework Questions
 
 10. The residuals from the AR(1) model above look to still have serial correlation present, so fit an additional AR(4) and AR(5) model. Compare the residual diagnostics of all 5 models to see if the ACF and PACF start to behave more like uncorrelated time series.
- 
+
+```{r}
+AR1 <- arima(Bill, order = c(1, 0, 0))
+AR2 <- arima(Bill, order = c(2, 0, 0))
+AR3 <- arima(Bill, order = c(3, 0, 0))
+AR4 <- arima(Bill, order = c(4, 0, 0))
+AR5 <- arima(Bill, order = c(5, 0, 0))
+
+tsdisplay(residuals(AR1), lag.max = 15, main = "AR(1) Resid. Diagnostics")
+tsdisplay(residuals(AR2), lag.max = 15, main = "AR(2) Resid. Diagnostics")
+tsdisplay(residuals(AR3), lag.max = 15, main = "AR(3) Resid. Diagnostics")
+tsdisplay(residuals(AR4), lag.max = 15, main = "AR(4) Resid. Diagnostics")
+tsdisplay(residuals(AR5), lag.max = 15, main = "AR(5) Resid. Diagnostics")
+```
+
 11. Use the AIC function (ex: AIC(AR1)) to obtain the AIC of each of the 5 models from #2. Does the model that yields the lowest AIC provide a residual plot that looks the best in terms of having removed the serial correlation?  
+
+```{r}
+bills_aic <- tibble(ar1 = AIC(AR1),
+                    ar2 = AIC(AR2),
+                    ar3 = AIC(AR3),
+                    ar4 = AIC(AR4),
+                    ar5 = AIC(AR5))
+
+bills_aic %>% 
+  gt()
+```
+
+**AR(4) has the lowest AIC value (458.2644), but AR(5) is close behind at 460.2588. Both AR(4) and AR(5) appear to be very similar on the ACF and PACF plots.**
 
 Rather than iteratively fitting models and checking AIC metrics, we can perform an automated procedure that searches a more diverse set of ARIMA models. Note here that this algorithm by default uses a stepwise procedure and doesn't necessary find a global minimum AIC value. For example, let's run the automated procedure using all of the defaults.
 
@@ -196,6 +262,7 @@ Rather than iteratively fitting models and checking AIC metrics, we can perform 
 ARIMA.fit <- auto.arima(Bill, seasonal = FALSE)
 ARIMA.fit
 ```
+
 Notice here the automated procedure selected the AR(2) model which we know from the previous exercises that AR(4) has a lower AIC. This is due to the stepwise selection process of auto.arima. To get them to correspond, 
 
 ```{r}
@@ -203,7 +270,7 @@ ARIMA.fit <- auto.arima(Bill, seasonal = FALSE, stepwise = FALSE)
 ARIMA.fit
 ```
 
-This function has a ton of bells and whistles and can also handle seasonal ARIMA models.. Take a look at `?auto.arima`.
+This function has a ton of bells and whistles and can also handle seasonal ARIMA models. Take a look at `?auto.arima`.
 
 Providing forecasts of a final model fit is relatively simple to do. Syntactically, the h in the forecast function provides the future forecast up to h time points ahead. In addition, to the forecasts, I've overlaid the model fit on the previous data to get look at that as well.
 
@@ -216,7 +283,22 @@ points(1:length(Bill), fitted(ARIMA.fit), type = "l", col = "blue")
 
 12. We know from previous explorations that the AR(1) model fits poorly as serial correlation is still un accounted for. Provide a forecast from the AR(1) model and compare it to the previous AR(4). What properties do the forecasts from this predictive model (AR1) lack in comparison to the AR(4)? What about the prediction interval bands?
 
+```{r}
+AR1 <- arima(Bill, order = c(1, 0, 0))
+plot(forecast(AR1, h = 10))
+points(1:length(Bill), fitted(AR1), type = "l", col = "blue")
+```
+
+**The AR(1) model has much wider prediction interval bands and the forecast shows a downward slope because it is only looking at the point behind it. In comparison, the AR(4) model shows tighter prediction interval bands and the model understands that after declining, the values go back up.**
+
 13. Provide another plot of the forecasts for the AR(4) model but forecast out to the next 100 observations. Sometimes students are blown away and not satisfied by the result. Can you explain, in a common sense way, why the forecasts behave the way they do?
+
+```{r}
+plot(forecast(ARIMA.fit, h = 100))
+points(1:length(Bill), fitted(ARIMA.fit), type = "l", col = "blue")
+```
+
+**As the forecast moves beyond known data, it will gradually drift towards regression because the model is forecasting on forecasted data.**
 
 The eclectic bill data set also contained some additional information, local area monthly temperatures. This could be helpful to include as a predictor if it can help explain the variation in the response. Like any regression plot, let's examine the a scatter plot of bills versus average temperature.
 
@@ -318,6 +400,45 @@ Taking this with a grain of salt since the test set only has 5 observations, the
 ### Homework Exercises
 
 14. Use the same train/test split previously discussed to fit an AR(4) model (do not include the predictor for AvgTemp) to train and forecast the last 5 observations. Provide a graphic of the forecast and produce the accuracy results on the 5 test set observations for comparison of the previous fits which included a predictor. Bonus question....why should we be careful, when comparing test accuracy metrics from models that are assumed stationary (AR4) and those that are not stationary (models with predictors)? Does it matter how many observations I include in the test set? Think about your result in 13.
+
+```{r}
+# Define holdout test
+holdout.test <- window(ts(Bill), start = 36)
+
+# Define training data
+train <- Bill[1:35]
+
+# Analyze residual diagnostics of OLS
+simpleols <- arima(train, order = c(0, 0, 0))
+tsdisplay(residuals(simpleols), lag.max = 15, main = "Resid. Diagnostics of OLS")
+
+# Create ARIMA
+ARIMA.wo.Pred <- auto.arima(train, stepwise = FALSE)
+
+# Examine ARIMA
+ARIMA.wo.Pred
+
+# Plot Residual Diagnostics
+tsdisplay(residuals(ARIMA.wo.Pred),
+          lag.max = 15,
+          main = "Resid. Diagnostics with AR(4)")
+
+# Plot forecast
+plot(forecast(
+  ARIMA.wo.Pred,
+  h = 5
+))
+points(1:length(train),
+       fitted(ARIMA.wo.Pred),
+       type = "l",
+       col = "blue")
+
+points(1:40, Bill, type = "l")
+
+# Score forecast results
+casts <- forecast(ARIMA.wo.Pred, h = 5)
+accuracy(casts, Bill[36:40])
+```
 
 ## Differencing data to create a stationary model. 
 
