@@ -1,0 +1,130 @@
+---
+title: "6306: Week 6 FLS"
+author: "Matt Farrow"
+date: "9/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(jsonlite)
+library(class)
+library(caret)
+```
+
+# Titanic Data Set
+
+```{r}
+titanic_json <- fromJSON("https://public.opendatasoft.com/api/records/1.0/search/?dataset=titanic-passengers&rows=2000&facet=survived&facet=pclass&facet=sex&facet=age&facet=embarked")
+
+titanic_df <- titanic_json[['records']][['fields']]
+```
+
+## Predict Outcome Using KNN
+
+```{r}
+# Set seed
+set.seed(1234)
+
+# Create survived data set with no NA
+survived <- titanic_df %>% 
+  select(age, pclass, survived) %>% 
+  na.omit()
+
+# Convert survived to a factor
+survived$survived <- as_factor(survived$survived)
+
+# Look at data
+glimpse(survived)
+
+# Set up test/train
+trainIndices <- sample(1:dim(survived)[1], round(0.75 * dim(survived)[1]))
+train        <- survived[trainIndices, ]
+test         <- survived[-trainIndices, ]
+
+# k = 3
+classifications <- knn(train[, c(1, 2)], test[, c(1, 2)], train$survived, prob = TRUE, k = 3)
+table(classifications, test$survived)
+confusionMatrix(table(classifications, test$survived))
+```
+
+## Predict Outcome for Me
+
+```{r}
+me <- tibble(age = c(rep(37, 3)),
+             pclass = c(1, 2, 3))
+
+knn(survived[, c(1, 2)], me, survived$survived, k = 5, prob = TRUE)
+```
+
+Looks like I only really have a chance to make it if I'm in 1st class.
+
+![](https://media.giphy.com/media/1QhmDy91F9veMRLpvK/giphy.gif)
+# Iris
+
+## Multinomial Iris Data
+
+For the full (multinomial) IRIS data (the iris dataset in R), do a 70-30 train/test cross validation with k =1 - 90 and use sepal length and width as predictors.  Make a plot of k (xaxis) versus accuracy.  Use this plot to tune the hyperparameter k.  What do you feel is the best value of k?  
+
+```{r}
+set.seed(1)
+iterations <- 500
+numks <- 60
+splitPerc <- .95
+
+masterAcc <- matrix(nrow = iterations, ncol = numks)
+
+for (j in 1:iterations)
+{
+  trainIndices <-
+    sample(1:dim(iris)[1], round(splitPerc * dim(iris)[1]))
+  train <- iris[trainIndices,]
+  test <- iris[-trainIndices,]
+  for (i in 1:numks)
+  {
+    classifications <-
+      knn(train[, c(1, 3)],
+          test[, c(1, 3)],
+          train$Species,
+          prob = TRUE,
+          k = i)
+    table(classifications, test$Species)
+    CM <- confusionMatrix(table(classifications, test$Species))
+    masterAcc[j, i] <- CM$overall[1]
+  }
+}
+
+MeanAcc <- colMeans(masterAcc)
+
+plot(seq(1, numks, 1), MeanAcc, type = "l")
+
+which.max(MeanAcc)
+max(MeanAcc)
+
+# FOR LIVE SESSION LEAVE 1 OUT KNN IRIS
+
+set.seed(1)
+iterations <- 500
+numks <- 90
+
+masterAcc <- matrix(nrow = iterations, ncol = numks)
+
+for (j in 1:iterations)
+{
+  for (i in 1:numks)
+  {
+    CM <-
+      confusionMatrix(table(iris[, 5], knn.cv(iris[, c(1, 2)], iris[, 5], k = i)))
+    masterAcc[j, i] <- CM$overall[1]
+  }
+}
+
+MeanAcc <- colMeans(masterAcc)
+
+plot(seq(1, numks, 1), MeanAcc, type = "l")
+
+which.max(MeanAcc)
+max(MeanAcc)
+```
+
