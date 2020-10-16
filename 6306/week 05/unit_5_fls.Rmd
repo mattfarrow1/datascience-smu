@@ -1,0 +1,248 @@
+---
+title: "6306: Week 5 FLS"
+author: "Matt Farrow"
+date: "9/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gt)
+library(hrbrthemes)
+library(gghalves)
+```
+
+## Basketball
+
+We previously used a dataset called PlayerBBall.csv which contained information about NBA basketball players. To finish that assignment, you had to manipulate the height column. Review the code you used to do that and see if you can’t make more efficient code using regular expressions and / or the string functions from this Unit. 
+
+Use regular expressions to use the height column to create a TotalInches column that has the total height in inches and is recorded as a numeric variable. 
+
+Use this variable to make a chart that contains histograms of heights for every position (color coded).
+
+```{r bball-height}
+# Read data
+df <- read_csv(here::here("6306", "week 05", "PlayersBBall.csv"), 
+               col_types = cols(birth_date = col_date(format = "%B %d, %Y")))
+
+# Look at height
+head(df$height)
+
+# Function to convert height to inches
+convert_height <- function(x) {
+  feet <- substr(x,1,1)
+  inches <- regexpr("[0-9]+$",x)
+  inches <- substr(x, inches, inches + attr(inches,"match.length"))
+  height <- as.numeric(feet)*12 + as.numeric(inches)
+  return(height)
+}
+
+# Convert height
+df <- df %>% 
+  mutate(height_in = convert_height(height)) 
+
+# Split up positions
+df <- df %>% 
+  mutate(pos_f = str_detect(df$position, "F"),
+         pos_g = str_detect(df$position, "G"),
+         pos_c = str_detect(df$position, "C"))
+
+df %>% 
+  select(pos_f, pos_g, pos_c, height_in) %>% 
+  pivot_longer(cols = 1:3, names_to = "position") %>% 
+  filter(value == TRUE) %>% 
+  ggplot(aes(position, height_in)) +
+  geom_half_violin(side = "l", fill = "steelblue", alpha = 0.2) +
+  geom_half_boxplot(side = "r") +
+    labs(title = "What is the relationship between player position\nand their height?",
+       x = "Position",
+       y = "Height (in.)") +
+  theme_ipsum()
+```
+
+## FIFA
+
+Use the string functions and regular expressions to assess a relationship between height and weight among soccer players. To do this you will need to manipulate the height and weight columns into columns that have numeric values of the height and weight. Next, assess this relationship between just the LB and LM positions.
+
+```{r fifa}
+# Load data 
+fifa <- read_csv(here::here("6306", "week 05", "FIFA Players.csv"))
+
+# Subset data to height, weight and position
+fifa <- fifa %>% 
+  select(Height, Weight, Position)
+
+# Convert height into inches
+fifa <- fifa %>% 
+  mutate(height_in = convert_height(fifa$Height))
+
+# Convert weight into just lbs
+fifa <- fifa %>% 
+  mutate(weight_lbs = as.numeric(str_remove(Weight, "lbs")))
+
+# Plot relationship between height and weight
+fifa %>% 
+  filter(!is.na(weight_lbs)) %>% 
+  group_by(height_in, weight_lbs) %>% 
+  tally() %>% 
+  ggplot(aes(height_in, weight_lbs, size = n)) +
+  geom_jitter(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  scale_size(range = c(1, 10)) +
+  labs(title = "What is the relationship between height and weight\nfor soccer players?",
+       x = "Height (in.)",
+       y = "Weight (lbs.)",
+       size = "# Players") +
+  theme_ipsum()
+
+fifa %>% 
+  filter(Position == "LB" | Position == "LM") %>% 
+  filter(!is.na(weight_lbs)) %>% 
+  group_by(Position, height_in, weight_lbs) %>% 
+  tally() %>% 
+  ggplot(aes(height_in, weight_lbs, size = n, color = Position)) +
+  geom_jitter(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  scale_size(range = c(1, 10)) +
+  labs(title = "What is the relationship between height and weight\nfor soccer players?",
+       subtitle = "only players who play LB or LM",
+       x = "Height (in.)",
+       y = "Weight (lbs.)",
+       size = "# Players") +
+  theme_ipsum()
+```
+
+## Baby Names
+
+### Part 1
+
+Utilize yob2016.txt for this question. 
+
+1. Import the .txt file into R so you can process it
+2. Assign the resulting data frame to an object, df, that consists of three columns with human-readable column names for each.
+3. Display the summary and structure of df
+4. Your client tells you that there is a problem with the raw file. One name was entered twice and misspelled.  The client cannot remember which name it is; there are thousands he saw! But he did mention he accidentally put three y’s at the end of the name. Write an R command to figure out which name it is and display it. Upon finding the misspelled name, please remove this particular observation, as the client says it’s redundant.
+
+Save the remaining dataset as an object: y2016 
+
+```{r warning=FALSE}
+# Load data
+baby_names_16 <- read_delim(here::here("6306", "week 05", "yob2016.txt"), 
+    ";", escape_double = FALSE, col_names = FALSE, 
+    trim_ws = TRUE)
+
+# Define column names
+names(baby_names_16) <- c("Name", "Gender", "Children")
+
+# Correct genders
+baby_names_16 <- baby_names_16 %>% 
+  mutate(Gender = if_else(Gender == FALSE, "Female", "Male", missing = "Male"))
+
+# Look at the data
+summary(baby_names_16)
+glimpse(baby_names_16)
+
+# Find the misspelled name (3 y's)
+baby_names_16_clean <- baby_names_16 %>% 
+  filter(Name != str_subset(baby_names_16$Name, "yyy"))
+```
+
+### Part 2
+
+Utilize yob2015.txt for this question.
+
+1. Import the .txt file into R
+2. Give the dataframe human-readable column names
+3. Display the last ten rows in the dataframe. Describe something you find interesting about these 10 rows.
+4. Merge y2016 and y2015 by your Name column; assign it to final. The client only cares about names that have data for both 2016 and 2015; there should be no NA values in either of your amount of children rows after merging.
+
+```{r warning=FALSE}
+# Load the data
+baby_names_15 <- read_csv(here::here("6306", "week 05", "yob2015.txt"), 
+    col_names = FALSE)
+
+# Define column names
+names(baby_names_15) <- c("Name", "Gender", "Children")
+
+# Correct genders
+baby_names_15 <- baby_names_15 %>% 
+  mutate(Gender = if_else(Gender == FALSE, "Female", "Male", missing = "Male"))
+
+# Look at the last 10 rows
+tail(baby_names_15, n = 10)
+```
+
+Without looking at the the sorting, it seems that 5 is the lowest number of children for males in the data.
+
+```{r}
+# Merge data together
+baby_names_final <- full_join(baby_names_15, baby_names_16_clean, by = c("Name", "Gender"))
+
+# Rename merged columns
+baby_names_final <- baby_names_final %>% 
+  rename(Children_2015 = Children.x,
+         Children_2016 = Children.y)
+
+# Make sure there are no NA values for children
+baby_names_final <- baby_names_final %>% 
+  filter(!is.na(Children_2015),
+         !is.na(Children_2016))
+```
+
+### Part 3
+
+Utilize your data frame object `final` for this part.
+
+1. Create a new column called “Total” in final that adds the amount of children in 2015 and 2016 together.
+2. In those two years combined, how many people were given popular names?
+3. Sort the data by Total. What are the top 10 most popular names?
+
+The client is expecting a girl!  Omit boys and give the top 10 most popular girl’s names.
+Write these top 10 girl names and their Totals to a CSV file. Leave out the other columns entirely.
+
+```{r}
+# Create total column
+baby_names_final <- baby_names_final %>% 
+  mutate(Total_Children = Children_2015 + Children_2016)
+
+# What are the 10 most popular names?
+baby_names_final %>% 
+  select(Name, Gender, Total_Children) %>% 
+  arrange(desc(Total_Children)) %>% 
+  top_n(10) %>% 
+  gt() %>% 
+  tab_header(title = "Most Popular Names",
+             subtitle = "In 2015 & 2016") %>% 
+  cols_label(Total_Children = "# Children") %>% 
+  fmt_number(columns = vars("Total_Children"), decimals = 0)
+
+# What are the 10 most popular girls names?
+baby_names_final %>% 
+  filter(Gender == "Female") %>% 
+  select(Name, Total_Children) %>% 
+  arrange(desc(Total_Children)) %>% 
+  top_n(10) %>% 
+  gt() %>% 
+  tab_header(title = "Most Popular Girl's Names",
+             subtitle = "In 2015 & 2016") %>% 
+  cols_label(Total_Children = "# Children") %>% 
+  fmt_number(columns = vars("Total_Children"), decimals = 0)
+```
+
+### Part 4
+
+```{r}
+baby_names_final %>% 
+  mutate(Children_Diff = Children_2015 - Children_2016) %>% 
+  group_by(Gender) %>% 
+  select(Name, Gender, Children_Diff) %>% 
+  slice_sample(n = 10) %>% 
+  ggplot(aes(Children_Diff, Name, color = Gender)) +
+  geom_segment(aes(x = 0, y = Name, xend = Children_Diff, yend = Name)) +
+  geom_point(size = 4) +
+  labs(title = "How did the number of children change\nbetween 2015 and 2016?",
+       x = "Difference Between 2015 & 2016") +
+  theme_ipsum()
+```
+
