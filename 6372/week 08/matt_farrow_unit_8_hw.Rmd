@@ -14,10 +14,22 @@ editor_options:
 
 ## MANOVA/LDA Conceptual Questions
 
-1. State the assumptions of the MANOVA and LDA models.
+1. State the assumptions of the MANOVA and LDA models.  
+
+  - Residuals are multivariate normal (MVNORM) with a constant covariance matrix
+
 2. What is the fundamental difference between MANOVA and LDA since they both share the same underlying assumptions?
+
+  - MANOVA compares two or more categorical variables across a range of continuous variables.
+  - LDA focuses on prediction of new observations into the existing categorical variables. 
+  
 3. What is a confusion matrix? 
+
+  - A confusion matrix is a table that compares actual values with predicted values to determine a model's accuracy.
+
 4. What is the difference between LDA and QDA, that is, what assumption of the LDA model is relaxed?
+
+  - QDA is a more flexible classifier than LDA because it relaxes the assumption that the two distributions have equal variance.
 
 ## Exercise 1: Visualizing LDA and QDA
 
