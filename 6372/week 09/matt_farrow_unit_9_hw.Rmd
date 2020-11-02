@@ -17,15 +17,26 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-
 ## PCA Conceptual questions
 
- 1. TRUE/FALSE Principle component analysis is a predictive modeling technique such as linear regression and lda.
- 2. TRUE or FALSE? Technically speaking, PCA should not be applied to categorical variables.
- 3. An analyst conducts a pca on continuous variables 1 through 20 and settled on reducing the variable down to 4. The analyst then proceeds to conduct a linear regression using the 4 pcs components as predictors and the response is variable 1. Why is this a horrible idea? 
- 4. Why is it important to conduct PCA on standardized variables (aka using the correlation matrix)?
+1. TRUE/FALSE Principle component analysis is a predictive modeling technique such as linear regression and LDA. 
  
+ $\qquad$ <span style="color: blue;">FALSE</span>
+ 
+2. TRUE or FALSE? Technically speaking, PCA should not be applied to categorical variables. 
+ 
+ $\qquad$ <span style="color: blue;">TRUE</span>
+ 
+3. An analyst conducts a PCA on continuous variables 1 through 20 and settled on reducing the variables down to 4. The analyst then proceeds to conduct a linear regression using the 4 PC components as predictors and the response is variable 1. Why is this a horrible idea? 
+
+$\qquad$ <span style="color: blue;">Because variable 1 is also included in the PC components, it cannot then be used as a response variable to the linear regression.</span>
+ 
+4. Why is it important to conduct PCA on standardized variables (aka using the correlation matrix)?
+
+$\qquad$ <span style="color: blue;">Standardizing variables makes the variables comparable and is especially important when the variables are in different scales.</span>
+
 ## Exercise #1 PCA Basics
+
 The example conducted in class did not do a very good job of illustrating the interpretation goals of PCA. For this reason, we will switch to a baseball data set to go over the basics and play around with interpretation. The baseball data set is located in the Lahman package. The data set is quite comprehensive having baseball player statistics dating back to 1871. We are going to examine the earliest year, 2016, by itself. Lets take a quick summary to see what variables we have. 
 
 ```{r}
@@ -39,9 +50,9 @@ bat_16 <- tibble(Batting %>%
 summary(bat_16)
 ```
 
-For those of you who do not know too much about baseball, the first 5 variables are just general information, G is the number of games played while the rest are information for players batting ability. G is games, AB is number of batting attempts, R-Runs, H-hits, X2B and X3B are doubles and triples, HR-home runs, RBI-Runs Batted In. These are all general information on how well the batters can hit the ball. SB-stolen bases and CS- caught stealing are statistics about a players ability to run the bases, BB and IBB are when the batter gets a walk, HBP is hit by a pitch, SH and SF are sacrifice hit and fly's where the player doesn't get a hit but their hit is still productive, and lastly GIDP is grounded into double plays. 
+For those of you who do not know too much about baseball, the first 5 variables are just general information, G is the number of games played while the rest are information for players batting ability. G is games, AB is number of batting attempts, R-Runs, H-hits, X2B and X3B are doubles and triples, HR-home runs, RBI-Runs Batted In. These are all general stats on how well the batters can hit the ball. SB (stolen bases) and CS (caught stealing) are statistics about a players ability to run the bases. BB and IBB are when the batter gets a walk. The other stats are HBP (hit by a pitch), SH (sacrifice hit) and SF (sacrifice fly), and GIDP (grounded into double play).
 
-Sports data sets lend themselves well to PCA. We will use this example to go through similar concepts discussed in class. For starters lets just start off with just a few variables in the set to verify PCA is doing what we expect it to. Here is a quick scatter plot matrix. The variables here are highly correlated with each other.
+Sports data sets lend themselves well to PCA. We will use this example to go through similar concepts discussed in class. For starters let's start off with just a few variables in the set to verify PCA is doing what we expect it to. Here is a quick scatter plot matrix. The variables here are highly correlated with each other.
 
 ```{r}
 # Create a reduced data set that contains only columns 6:10
@@ -78,7 +89,7 @@ cov(reduced)
 sum(diag(cov(reduced)))
 ```
 
-Running PCA is relatively straight forward. The following script conducts a PCA using the covariance matrix (nonstandardarized variables) and stores the results in an object. This object contains the eigenvectors, eigenvalue, and the new principle component vectors. Lets start by producing a correlation matrix to verify that new principle component variables are uncorrelated.
+Running PCA is relatively straightforward. The following script conducts a PCA using the covariance matrix (nonstandardized variables) and stores the results in an object. This object contains the eigenvectors, eigenvalue, and the new principle component vectors. Lets start by producing a correlation matrix to verify that new principle component variables are uncorrelated.
 
 ```{r}
 # Run principle component analysis on reduced data
@@ -113,7 +124,7 @@ sum(apply(reduced, 2, var))
 pc_result$rotation
 ```
 
-A scree plot of the eigenvalues used to determine how many pc's to keep can be plotted in the following way:
+A scree plot of the eigenvalues used to determine how many PC's to keep can be plotted in the following way:
 
 ```{r}
 par(mfrow = c(1, 2))
@@ -124,13 +135,31 @@ plot(1:5, cumulative.prop, type = "l", main = "Cumulative proportion", ylim = c(
 par(mfrow = c(1, 1))
 ```
 
-Since all of the variables are not on the same scale, we see a very similar phenomenon that we discussed in the pre-live session. To conduct the PCA on the correlation matrix, just set `scale.=TRUE` inside of the `prcomp` function.
+Since all of the variables are not on the same scale, we see a very similar phenomenon that we discussed in the pre-live session. To conduct the PCA on the correlation matrix, just set `scale. = TRUE` inside of the `prcomp` function.
 
 ## HW Assignment #1
 
-1. Conduct the PCA analysis but use the entire set of variables starting with the column 6, the Games played variable, all the way down to the end at GIDP. Provide a scree plot and determine the amount of PC's needed to retain approximately 90% of the total variation in the data set.
+1. Conduct the PCA analysis but use the entire set of variables starting with column 6, the Games played variable, all the way down to the end at GIDP. Provide a scree plot and determine the amount of PC's needed to retain approximately 90% of the total variation in the data set.
+
+```{r}
+# Run PCA
+hw_q1_1 <- princomp(bat_16[, 6:22], scores = TRUE)
+
+# Scree Plot
+screeplot(hw_q1_1)                  # bars
+screeplot(hw_q1_1, type = "lines")  # lines
+```
+
+**It looks as though only one PC is needed to retain approximately 90% of the total variation in the data set.**
 
 2. Provide the eigenvector matrix and examine the loading (coefficients) that determine the linear combinations of each principle component. Verify that PC1 is essentially a weighted average of all the variables together (minus the SH, sacrifice hit variable.) 
+
+```{r}
+# Summary Stats
+# summary(hw_q1_1)
+hw_q1_1$loadings
+# hw_q1_1$scores
+```
 
 3. Verify that PC2 has big negative loadings on triples (X3B), stolen bases (SB), caught stealing (CS), and sacrifice hits (SH). This variable could be interpreted to be a general indication of a players speed or general utility since all of the variables require situation awareness and running ability. (You don't need to provide an answer here, just verify))
 
@@ -209,13 +238,13 @@ pc_bc_scores$Diagnosis <- bc$diagnosis
 
 # Use ggplot2 to plot the first few PC's
 ggplot(data = pc_bc_scores, aes(x = PC1, y = PC2)) +
- geom_point(aes(col = Diagnosis), size = 1) +
+ geom_point(aes(col = Diagnosis), size = 3, alpha = 0.5) +
  labs(title = "PCA of Breast Cancer Tumor Biopsies") +
   theme_minimal()+
   NULL
 
 ggplot(data = pc_bc_scores, aes(x = PC2, y = PC3)) +
- geom_point(aes(col = Diagnosis), size = 1) +
+  geom_point(aes(col = Diagnosis), size = 3, alpha = 0.5) +
  labs(title = "PCA of Breast Cancer Tumor Biopsies") +
   theme_minimal() +
   NULL
@@ -225,7 +254,20 @@ So we can see in the first graphic a clear separation exists for the two cancer 
 
 ## HW Assignment 2
 
-1. Given what we see in the PCA analysis, its not too surprising that an LDA will probably do a good job here in predicting the categorical responses. Perform an LDA on the original set of variables and calculate a confusion matrix. Note: For this problem you do not have to do a training and test set split, lets recognize that the prediction performance that we obtain is potentially biased too low due to overfitting. The main point here is that the accuracy is pretty good as expected via the PCA look.
+1. Given what we see in the PCA analysis, it's not too surprising that an LDA will probably do a good job here in predicting the categorical responses. Perform an LDA on the original set of variables and calculate a confusion matrix. Note: For this problem you do not have to do a training and test set split, let's recognize that the prediction performance that we obtain is potentially biased too low due to overfitting. The main point here is that the accuracy is pretty good as expected via the PCA look.
+
+```{r}
+library(MASS)
+
+# Run LDA
+bc_lda <- lda(diagnosis ~ ., data = bc[, -1], CV = TRUE)
+
+# Create confusion matrix
+tab <- table(bc$diagnosis, bc_lda$class)
+conCV1 <- rbind(tab[1, ]/sum(tab[1, ]), tab[2, ]/sum(tab[2, ]))
+# dimnames(conCV1) <- list(Actual = c("No", "Yes"), "Predicted (cv)" = c("No", + "Yes"))
+print(round(conCV1, 3))
+```
 
 2. Consider now another great sanity check when building predictive models. The code below takes the original data set and randomly scrambles the response variable. This effectively breaks up any relationship that existed between the predictors and the response. 
 
@@ -235,6 +277,44 @@ fake$diagnosis <- sample(fake$diagnosis, 569, replace = F)
 ```
 
  a. Plot PC1 and PC2 using the scrambled data set. 
+
+```{r}
+# Run PCA
+pc_fake <- prcomp(fake[,-c(1, 2)], scale. = TRUE)
+pc_fake_scores <- pc_fake$x
+
+# Adding the response column to the PC's data frame
+pc_fake_scores <- as_tibble(pc_fake_scores)
+pc_fake_scores$Diagnosis <- fake$diagnosis
+
+# Use ggplot2 to plot the first few PC's
+ggplot(data = pc_fake_scores, aes(x = PC1, y = PC2)) +
+ geom_point(aes(col = Diagnosis), size = 3, alpha = 0.5) +
+ labs(title = "PCA of Breast Cancer Tumor Biopsies") +
+  theme_minimal()+
+  NULL
+
+ggplot(data = pc_fake_scores, aes(x = PC2, y = PC3)) +
+  geom_point(aes(col = Diagnosis), size = 3, alpha = 0.5) +
+ labs(title = "PCA of Breast Cancer Tumor Biopsies") +
+  theme_minimal() +
+  NULL
+``` 
+
  b. Perform an LDA with this data set and look at the confusion matrix. Do they correspond?
  
-Note: This little trick is extremely helpful when you are predicting a response that is heavily imbalance (ex: lots of Cancer obs, few Healthy ones ). LDA and other algorithms can behave quite weirdly in extreme cases and prediction performances can look good all the time. By conducting a separate analysis on scrambled data, if the prediction performance still looks good, you've recognized a problem. We can discuss this topic more as we get closer to finishing up Project 2.
+Note: This little trick is extremely helpful when you are predicting a response that is heavily imbalanced (ex: lots of Cancer obs, few Healthy ones ). LDA and other algorithms can behave quite weirdly in extreme cases and prediction performances can look good all the time. By conducting a separate analysis on scrambled data, if the prediction performance still looks good, you've recognized a problem. We can discuss this topic more as we get closer to finishing up Project 2.
+
+```{r}
+library(MASS)
+
+# Run LDA
+fake_lda <- lda(diagnosis ~ ., data = fake[, -1], CV = TRUE)
+
+# Create confusion matrix
+tab <- table(fake$diagnosis, fake_lda$class)
+conCV1 <- rbind(tab[1, ]/sum(tab[1, ]), tab[2, ]/sum(tab[2, ]))
+# dimnames(conCV1) <- list(Actual = c("No", "Yes"), "Predicted (cv)" = c("No", + "Yes"))
+print(round(conCV1, 3))
+```
+
