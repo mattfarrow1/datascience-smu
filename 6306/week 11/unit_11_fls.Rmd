@@ -1,0 +1,298 @@
+---
+title: "6306: Week 11 FLS"
+author: "Matt Farrow"
+date: "11/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(fpp2)
+```
+
+## Activity 1
+
+Run this code and get a feel for what it is doing. Feel free to change it up and just learn by playing. 
+
+```{r}
+# SES MODEL FOR AUS AIR
+data(ausair)
+
+# returns a ts object
+air <- window(ausair, start = 1990, end = 2004)
+
+# Always plot the data first!
+plot(air, ylab = "Airline Passegners", xlab = "Year", main = "Airline Passengers")
+
+# fit 3 different simple exponential smoothing models ... how are they different?
+# what does the h parameter do?
+fit1 <- ses(air, initial = "simple", alpha = .2, h = 3)
+fit2 <- ses(air, initial = "simple", alpha = .6, h = 3)
+fit3 <- ses(air, h = 3) # defaults
+
+# the forecast package has a nice accuracy funciton with various metrics just pass it the
+# the model and the data! (This is the "training" data)
+accuracy(fit1, ausair)
+accuracy(fit2, ausair)
+accuracy(fit3, ausair)
+
+# Reset the plot
+plot(air, ylab = "Airline Passegners", xlab = "Year", type = "o", xlim = c(1990, 2008), ylim = c(15, 50), main = "Airline Passengers")
+
+# Plot the estimated values from the models .. the "fitted" values are the training values.
+lines(fitted(fit1), col = "blue", type = "o")
+lines(fitted(fit2), col = "red", type = "o")
+lines(fitted(fit3), col = "green", type = "o")
+
+# the $mean values are the forecasts.
+lines(fit1$mean, col = "blue", type = "o")
+lines(fit2$mean, col = "red", type = "o")
+lines(fit3$mean, col = "green", type = "o")
+
+# These are the actual values! Compare visually with the forecasts!
+air2008 <- window(ausair, start = 1990, end = 2007)
+points(air2008, type = "o")
+
+# Compare the forecasts with the actual values with various fit metrics.
+accuracy(fit1, air2008)
+accuracy(fit2, air2008)
+accuracy(fit3, air2008)
+```
+
+## Activity 2: Holt Linear
+
+Next, this is similar code with a different model (Holt with linear trend.) Again, run this code and get a feel for what it is doing. Feel free to change it up and just learn by playing.
+
+```{r}
+# 2 Holt's Linear Trend Model for AUS AIR
+fit1h <- holt(air, alpha = .8, beta = .2, initial = "simple", h = 5)
+fit2h <- holt(air, alpha = .8, beta = .2, initial = "simple", exponential = TRUE, h = 5)
+
+# Check out estiamted values of the "training" data from the first holt model
+fitted(fit1h)
+
+# Check out the forecast value (h of them)
+fit1h$mean
+
+# Reset the Plot!
+plot(air, ylab = "Airline Passegners", xlab = "Year", type = "o", xlim = c(1990, 2009), ylim = c(15, 60))
+
+# Plot each models estimated values of the training data (Do these one by one to see the differences)
+lines(fitted(fit1h), col = "blue", type = "o")
+lines(fitted(fit2h), col = "red", type = "o")
+
+# Plot each models forecasts (Do these one by one to see the differences)
+lines(fit1h$mean, col = "blue", type = "o")
+lines(fit2h$mean, col = "red", type = "o")
+
+# Fit another model ... damped!
+fit3h <- holt(air, alpha = .8, beta = .2, damped = TRUE, initial = "optimal", h = 5)
+
+# Plot the fitted value (estimated from triaining data)
+lines(fitted(fit3h), col = "darkgreen", type = "o")
+
+# Plot the forecasts
+lines(fit3h$mean, col = "darkgreen", type = "o")
+
+# Fit another model ... what is the difference?
+fit4h <- holt(air, alpha = .8, beta = .2, damped = TRUE, initial = "optimal", exponential = TRUE, h = 5)
+
+# Plot the fitted value (estimated from triaining data)
+lines(fitted(fit4h), col = "cyan", type = "o")
+
+# Plot the forecasts
+lines(fit4h$mean, col = "cyan", type = "o")
+
+# with implicit Test set... it figures out by the time which are training and which are test.
+accuracy(fit1h, ausair)
+accuracy(fit2h, ausair)
+accuracy(fit3h, ausair)
+
+# with explicit Test set ... (same output)
+airTest <- window(ausair, start = 2005)
+accuracy(fit1h, airTest)
+accuracy(fit2h, airTest)
+accuracy(fit3h, airTest)
+
+# Add the actual values to visually compare forecasts to actual values
+air2008 <- window(ausair, start = 1990, end = 2009)
+points(air2008, type = "o")
+```
+
+## Activity 3: Holt Seasonal
+
+We are changing the data this time. Still just learn by playing with the code and looking closely at the input arguments and the output. Also, record any questions that pop up while you are playing. We can discuss them in live session.
+
+```{r}
+# Load the data
+data("austourists")
+
+# Read about the data set!
+# ?austourists
+
+# Always plot the data first!
+plot(austourists)
+
+# returns a ts object.
+aust <- window(austourists, start = 1999, end = 2004)
+
+# fit an additive and multiplicative model
+fit1s <- hw(aust, seasonal = "additive", h = 40)
+fit2s <- hw(aust, seasonal = "multiplicative", h = 40)
+
+# Plot the original data
+plot(aust, ylab = "Australian Tourists", xlab = "Year", type = "o", xlim = c(1999, 2014), ylim = c(15, 60))
+
+# add the fitted values from the model (of the training data)
+lines(fitted(fit1s), col = "blue", type = "o")
+lines(fitted(fit2s), col = "red", type = "o")
+
+# Now add the forecasts (add these one at a time)
+lines(fit1s$mean, col = "blue", type = "o")
+lines(fit2s$mean, col = "red", type = "o")
+
+# Compare the accuracy
+accuracy(fit1s, austourists)
+accuracy(fit2s, austourists)
+
+# add the actual values to visually compare the forecasts to the actual values.
+points(austourists, type = "o")
+```
+
+## Activity 4: Full Analysis
+
+### Temperature Data 
+
+Using the `maxtemp` dataset granted by loading the `fpp2` package, there are maximum annual temperature data in Celsius. For more information, use `help(maxtemp)`. To see what you’re looking at, execute the command in ‘Examples’ in the help document.
+
+We are only concerned with information after 1990. Please eliminate unwanted information or subset information we don’t care about.
+
+Utilize SES to predict the next five years of maximum temperatures in Melbourne. Plot this information, including the prior information and the forecast. Add the predicted value line across 1990-present as a separate line, preferably blue. So, to review, you should have your fit, the predicted value line overlaying it, and a forecast through 2021, all on one axis. Find the AICc and BIC of this fitted model. You will use that information later.
+
+```{r}
+# Create time series
+temp <- window(maxtemp, start = 1990, end = 2016)
+
+# Plot the data
+plot(temp)
+
+# Predict next 5 years
+fit1 <- ses(temp, initial = "optimal", alpha = .8, h = 5)
+
+# Plot the original data & the predictions
+plot(temp, ylab = "Maximum Temperatures in Melbourne (ºC)", xlab = "Year", type = "o", xlim = c(1990, 2020))
+
+# Plot the estimated values from the model
+lines(fitted(fit1), col = "blue", type = "o")
+
+# Plot the forecast
+lines(fit1$mean, col = "blue", type = "o")
+
+# Compare the forecasts with the actual values with various fit metrics.
+# accuracy(fit1, temp)
+```
+
+Now use a damped Holt’s linear trend to also predict out five years. Make sure `initial = “optimal”`. As above, create a similar plot to 1C, but use the Holt fit instead.
+
+Compare the AICc and BIC of the ses() and holt() models. Which model is better here?
+
+```{r}
+# Holt's linear trend model for temp
+fit1h <- holt(temp, alpha = .8, beta = .2, initial = "simple", h = 5)
+# fit2h <- holt(air, alpha = .8, beta = .2, initial = "simple", exponential = TRUE, h = 5)
+
+# Check out estiamted values of the "training" data from the first holt model
+fitted(fit1h)
+
+# Check out the forecast value (h of them)
+fit1h$mean
+
+# Plot the original data & the predictions
+plot(temp, ylab = "Maximum Temperatures in Melbourne (ºC)", xlab = "Year", type = "o", xlim = c(1990, 2020))
+
+# Plot estimated values of the training data
+lines(fitted(fit1h), col = "blue", type = "o")
+
+# Plot forecast
+lines(fit1h$mean, col = "blue", type = "o")
+
+# Fit another model ... damped!
+fit3h <- holt(temp, alpha = .8, beta = .2, damped = TRUE, initial = "optimal", h = 5)
+
+# Plot the fitted value (estimated from training data)
+lines(fitted(fit3h), col = "darkgreen", type = "o")
+
+# Plot the forecasts
+lines(fit3h$mean, col = "darkgreen", type = "o")
+
+# Fit another model ... what is the difference?
+fit4h <- holt(temp, alpha = .8, beta = .2, damped = TRUE, initial = "optimal", exponential = TRUE, h = 5)
+
+# Plot the fitted value (estimated from triaining data)
+lines(fitted(fit4h), col = "cyan", type = "o")
+
+# Plot the forecasts
+lines(fit4h$mean, col = "cyan", type = "o")
+
+# with implicit Test set... it figures out by the time which are training and which are test.
+# accuracy(fit1h, temp)
+```
+
+Calculate and compare the ASE from the ses() and holt() models. Which one performs better with respect to this metric?
+
+## Bonus: The Wands Choose the Wizards
+
+We will cover this in Live Session… get a head start if you have time!
+
+-   Utilize the dygraphs library. Read in both Unit12TimeSeries_Ollivander and _Gregorovitch.csv as two different data frames. They do not have headers, so make sure you account for that. This is a time series of Wands sold over years.
+-   You don’t have your information in the proper format! In both data sets, you’ll need to first convert the date-like variable to an actual Date class.
+-   Use the library xts (and the xts() function in it) to make each data frame an xts object (effectively, a time series). You’ll want to order.by the Date variable.
+-   Bind the two xts objects together and create a dygraph from it. Utilize the help() index if you’re stuck.
+  -   Give an effective title and x/y axes.
+  -   Label each Series (via dySeries) to be the appropriate wand-maker. So, one line should create a label for Ollivander and the other for Gregorovitch.
+  -   Stack this graph and modify the two lines to be different colors (and not the default ones!) Any colors are fine, but make sure they’re visible and that Ollivander is a different color than Gregorovitch.
+  -   Activate a range selector and make it big enough to view.
+  -   Use dyShading to illuminate approximately when Voldemort was revived and at-large: between 1995 to 1999.
+  -   Enable Highlighting on the graph, so mousing over a line bolds it.
+
+```{r}
+library(dygraphs)
+library(xts)
+
+# Import the data
+ollivander <- read_csv(here::here("6306", "week 11", "Unit11TimeSeries_Ollivander.csv"), 
+    col_names = FALSE, col_types = cols(X1 = col_date(format = "%m/%d/%Y")))
+gregorovitch <- read_csv(here::here("6306", "week 11", "Unit11TimeSeries_Gregorovitch.csv"), 
+    col_names = FALSE, col_types = cols(X1 = col_date(format = "%m/%d/%Y")))
+
+# Set names
+ollivander <- ollivander %>% 
+  rename(date = X1,
+         wands = X2) %>% 
+  mutate(wandmaker = "Ollivander")
+gregorovitch <- gregorovitch %>% 
+  rename(date = X1,
+         wands = X2) %>% 
+  mutate(wandmaker = "Gregorovitch")
+
+# Make time series
+ollivander_ts <- xts(ollivander, order.by = ollivander$date)
+gregorovitch_ts <- xts(gregorovitch, order.by = gregorovitch$date)
+
+# Bind data together
+wands <- cbind(ollivander_ts, gregorovitch_ts)
+
+# Make dygraph
+dygraph(wands,
+        main = "Wands Sold by Wandmaker",
+        xlab = "Date",
+        ylab = "Wands Sold",) %>%
+  dySeries("wands", label = "Ollivander") %>%
+  dySeries("wands.1", label = "Gregorovitch") %>%
+  dyRangeSelector(height = 20) %>% 
+  dyOptions(colors = RColorBrewer::brewer.pal(3, "Set1")) %>% 
+  dyShading(from = "1995-01-01", to = "1999-12-31") %>% 
+  dyHighlight()
+```
+
