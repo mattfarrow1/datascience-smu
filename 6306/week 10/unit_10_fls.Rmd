@@ -1,0 +1,207 @@
+---
+title: "6306: Week 10 FLS"
+author: "Matt Farrow"
+date: "10/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(hrbrthemes)
+library(GGally)
+```
+
+## Question 1: Model Interpretation
+
+Using the cars.csv dataset,
+
+### Fit the Model $mpg = β_0 + β_1(Weight) + 𝜀$
+
+```{r message=FALSE, warning=FALSE}
+# Read in the data
+cars <- read_csv(here::here("6306", "week 10", "cars.csv"))
+
+# Create the model
+cars_model <- lm(MPG ~ Weight, data = cars)
+
+# Generate the model summary
+summary(cars_model)
+```
+
+### 6-Step Hypothesis Test
+
+Conduct a 6-step hypothesis test of the slope. That is, test the claim that the slope is significantly different from zero. Show all 6 steps and quantify your uncertainty by including a 95% confidence interval for the slope.
+
+1. NULL & Alternative Hypothesis
+
+  - $H_0: β_0 = 0$
+  - $H_a: β_o ≠ 0$
+  
+2. Find the critical values; draw and shade
+
+```{r message=FALSE, warning=FALSE}
+# Critical values
+qt(1-0.05, 392)
+
+knitr::include_graphics(here::here("6306", "week 10", "norm.gif"))
+```
+
+3. Calculate the t-statistic
+
+  - -29.73
+  
+4. Calculate the p-value
+
+  - <2e-16
+
+5. Make a decision
+
+  - Reject the NULL hypothesis
+
+6. Write a clear conclusion
+
+  - There is overwhelming evidence to suggest that the slope is different than 0 (p-value = 2e-16). 95% confidence interval (-0.0082, -0.0072).
+
+### 
+
+Describe the relationship between miles per gallon and the weight of the car by interpreting the slope parameter. Again, be sure and include a 95% confidence interval in your interpretation.
+
+```{r message=FALSE, warning=FALSE}
+summary(cars_model)
+confint(cars_model)
+```
+
+$MPG = 46.2734 - 0.0077(Weight)$
+
+Each one unit increase in MPG corresponds with a 0.0077 unit decrease in weight of the car; 95% confidence interval (-0.0082, -0.0072).
+
+## Question 2: Leave One Out Cross Validation
+
+Using the cars.csv, conduct an internal n-fold (leave one out) cross validation of the following SLR models:
+
+1. Model 1:  $mpg = β_0 + β_1(Weight) + 𝜀$  
+
+```{r message=FALSE, warning=FALSE}
+library(caret)
+
+train(MPG ~ Weight, method = "lm", data = cars, trControl = trainControl(method = "LOOCV"))
+```
+
+2. Model 2:  $mpg = β_0 + β_1(Weight) + β_2(Weight)^2 + 𝜀$  
+
+```{r message=FALSE, warning=FALSE}
+train(MPG ~ Weight + I(Weight^2), method = "lm", data = cars, trControl = trainControl(method = "LOOCV"))
+```
+
+3. Which model is favored by this cross validation?  
+
+  - Model 2 is favored by cross-validation.
+
+4. Describe the relationship between miles per gallon and the weight of the car (if it has changed) (again making sure to quantify any uncertainty you may have.) 
+
+5. Use the favored model to estimate the mean mpg of cars that weigh 2000 lbs.
+
+```{r message=FALSE, warning=FALSE}
+# Using model 2 let's estimate the mean mpg of the sub-population of cars that weigh 2000lbs
+fit <- lm(MPG ~ Weight + I(Weight^2), data = cars)
+car2000 <- data.frame(Weight = 2000)
+car2000_conf <- predict(fit, newdata = car2000, interval = "confidence")
+car2000_conf
+
+# Using model 2 let's estimate the mpg of an individual car that weighs 2000lbs
+fit <- lm(MPG ~ Weight + I(Weight^2), data = cars)
+car2000 <- data.frame(Weight = 2000)
+car2000_pred <- predict(fit, newdata = car2000, interval = "prediction")
+car2000_pred
+
+# Plot predicted mean on our graph
+cars %>% ggplot(aes(x = Weight, y = MPG)) +
+  geom_point() +
+  # geom_line(data = cars, aes(x = Weight, y = car2000_pred, col = "red", size = 1)) +
+  ggtitle("LR Model: Weight + Weight^2 vs MPG") +
+  scale_color_discrete(name = "Predicted") +
+  geom_point(aes(x = 2000, y = floor(car2000_pred[1])), color = "blue", shape = "square", size = 3) +
+  theme_minimal()
+```
+
+## Question 3: Impute Values
+
+Using the cars.csv dataset, We would like to assess the relationship (interpret slope parameter) between mpg and horsepower.  Notice that some of the horsepower values are missing.  
+
+1. Impute (predict and insert) the missing horsepower values by fitting a regression model. 
+2. You may use any of the variables as regressors EXCEPT for MPG (since we will later be using horsepower to predict mpg.) 
+3. Assess the relationship between the mpg and the slope.  Make sure and include estimates of your uncertainty (i.e. Confidence intervals.) 
+4. Use your model and imputed data to estimate the mean mpg for a car with 250 horsepower. 
+
+```{r message=FALSE, warning=FALSE}
+# How many missing values?
+colSums(is.na(cars))
+missingIdx <- which(is.na(cars$Horsepower))
+
+# Look at the rows with missing values
+cars %>% filter(is.na(Horsepower))
+
+# Look at variable relationships
+cars %>% 
+  select(-c(1:2)) %>% 
+  ggpairs() +
+  theme_minimal()
+
+# Look at horsepower and acceleration
+cars %>% 
+  ggplot(aes(Horsepower, Acceleration)) +
+  geom_jitter(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(title = "Relationship between horsepower and acceleration") +
+  theme_ipsum()
+
+# Fit a model using acceleration
+fit <- lm(Horsepower ~ Acceleration, data = cars)
+summary(fit)
+confint(fit)
+
+# Predict missing horsepower values using acceleration
+cars_predict <- predict(fit, newdata = tibble(Acceleration = c(cars[missingIdx[1], ]$Acceleration,
+                                                               cars[missingIdx[2], ]$Acceleration)))
+
+# Add predictions to cars
+cars[missingIdx[1], ]$Horsepower <- cars_predict[1]
+cars[missingIdx[2], ]$Horsepower <- cars_predict[2]
+
+# Look at the relationship with imputed values
+# Look at horsepower and acceleration
+cars %>% 
+  ggplot(aes(Horsepower, Acceleration)) +
+  geom_jitter(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(title = "Relationship between horsepower and acceleration") +
+  theme_ipsum()
+
+# Re-run the model
+fit <- lm(Horsepower ~ Acceleration, data = cars)
+summary(fit)
+confint(fit)
+
+# MSE
+mean(cars$Horsepower - (predict(cars_model)^2))
+
+# Predict mean mpg for car with 250 HP
+fit <- lm(MPG ~ Horsepower, data = cars)
+horse_predict <-
+  predict(fit,
+          newdata = data.frame(Horsepower = 250),
+          interval = "confidence")
+horse_predict
+
+# Plot predicted mean on our graph
+cars %>% 
+  ggplot(aes(Horsepower, MPG)) +
+  geom_jitter(alpha = 0.5) +
+  geom_line(data = cars, aes(Horsepower, predict(fit)), color = "indianred") +
+  geom_point(aes(250, floor(horse_predict[1])),
+             color = "steelblue",
+             size = 3) +
+  labs(title = "Predicting mean MPG for a car with 250 HP") +
+  theme_ipsum()
+```
