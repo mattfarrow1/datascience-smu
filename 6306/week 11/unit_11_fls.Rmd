@@ -181,7 +181,13 @@ plot(temp)
 fit1 <- ses(temp, initial = "optimal", alpha = .8, h = 5)
 
 # Plot the original data & the predictions
-plot(temp, ylab = "Maximum Temperatures in Melbourne (ºC)", xlab = "Year", type = "o", xlim = c(1990, 2020))
+plot(
+  temp,
+  ylab = "Maximum Temperatures in Melbourne (ºC)",
+  xlab = "Year",
+  type = "o",
+  xlim = c(1990, 2020)
+)
 
 # Plot the estimated values from the model
 lines(fitted(fit1), col = "blue", type = "o")
@@ -190,7 +196,7 @@ lines(fitted(fit1), col = "blue", type = "o")
 lines(fit1$mean, col = "blue", type = "o")
 
 # Compare the forecasts with the actual values with various fit metrics.
-# accuracy(fit1, temp)
+accuracy(fit1, temp)
 ```
 
 Now use a damped Holt’s linear trend to also predict out five years. Make sure `initial = “optimal”`. As above, create a similar plot to 1C, but use the Holt fit instead.
