@@ -21,13 +21,21 @@ library(tidyverse)
 
 1. State under what circumstance that a difference in proportion confidence interval or test should not be used in favor of an odds ratio metric.
 
+$\qquad$ <span style="color: blue;">When a result is of statistical significance, but not necessarily practical significance, an odds ratio metric is more appropriate.</span>
+
 2. Under what sampling schemes can a hypothesis test be generally worded as a "test for association", rather than a test for difference in proportion, odds, or relative risk?
 
-3. It might be tempting in a predictive model setting (using a test set) to obtain a count of correct vs incorrect predictions for two or more modeling approaches. Imagine that the classification accuracy on a test set of 200 observations for model 1 is .82 while for model 2 it was .80. To determine that one model is actually predicting "better"" than the other in terms of overall accuracy, you produce a confidence interval for the difference in proportion of correctly predicted observations and the interval does not contain 0. Why is this type of analysis using a two by two count table inappropriate?
+$\qquad$ <span style="color: blue;">Retrospective observational studies.</span>
+
+3. It might be tempting in a predictive model setting (using a test set) to obtain a count of correct vs incorrect predictions for two or more modeling approaches. Imagine that the classification accuracy on a test set of 200 observations for model 1 is 0.82 while for model 2 it was 0.80. To determine that one model is actually predicting "better"" than the other in terms of overall accuracy, you produce a confidence interval for the difference in proportion of correctly predicted observations and the interval does not contain 0. Why is this type of analysis using a 2x2 count table inappropriate?
 
 4. Give an example of study that could not be conducted in a prospective manner due to either logistical or ethical considerations.
 
+$\qquad$ <span style="color: blue;">Any sort of study that involves illegal or dangerous behavior would not be appropriate for a prospective study..</span>
+
 5. What metric allows for the following interpretation: "The chances of a person getting the flu who has not taken the flu vaccine is thirty percent (1.3 times) higher than someone who has taken the flu vaccine"?
+
+$\qquad$ <span style="color: blue;">Risk ratio.</span>
 
 ## Exercise #1: Basic Tools
 
@@ -64,13 +72,13 @@ mymat <-
          dimnames = list(c("Placebo", "Vitamin C"), c("No", "Yes")))
 ```
 
-As discussed in the analysis plan of live session, a common approach to streamline the analysis of 2x2 contingency tables is to run either a Fisher's Exact Test or a Chi-Square Test to answer the key hypothesis question at hand. The following is an example of how to do both. At this stage the format of `mymat` doesn't matter, the p-value will be the same regardless of how the rows and columns are situated.
+As discussed in the analysis plan of live session, a common approach to streamline the analysis of 2x2 contingency tables is to run either a Fisher's Exact Test or a Pearson's Chi-squared test with Yates' contuinuity correction to answer the key hypothesis question at hand. The following is an example of how to do both. At this stage the format of `mymat` doesn't matter, the p-value will be the same regardless of how the rows and columns are situated.
 
 ```{r}
-# Conducting a fishers exact test
+# Conducting a Fisher's Exact Test
 fisher.test(mymat)
 
-# Conducting a chi square test
+# Conducting a Pearson's Chi-squared test
 chisq.test(mymat, correct = TRUE)
 ```
 
@@ -87,7 +95,7 @@ Make note the proportion of No's for each group. This will come in handy later f
 Turning our attention now to confidence intervals, these can be obtained from various packages. Differences in proportions are easily obtained using the previous `prop.test` function. For the odds ratio and relative risk metrics, we will obtain these from the `epitools` package.
 
 ```{r}
-# CI's for proportions
+# Confidence intervals for proportions
 prop.test(mymat, correct = TRUE)
 ```
 
@@ -124,15 +132,42 @@ riskratio.wald(mymat)
 
 ### Homework Questions
 
-6. Consider the last bit of output from line 91, where the estimate and confidence interval for the odds ratio is reported. What is the ratio currently for? Odds (Y:N) or (N:Y) and is placebo on top or is placebo on bottom?
+6. Consider the last bit of output from `oddsratio.wald(mymat)`, where the estimate and confidence interval for the odds ratio is reported. What is the ratio currently for? Odds (Y:N) or (N:Y) and is placebo on top or is placebo on bottom?
+
+```{r}
+oddsratio.wald(mymat)$measure
+```
+
+$\qquad$ <span style="color: blue;">For the odds ratio, the positions are flipped and the reference level is on the bottom. So, in this instance, placebo is on the bottom and the odds ratio is N:Y. The confidence intervals are being calculated using normal approximation.</span>
 
 7. Rerun the `oddsratio.wald` function but include the option `(rev = "both")` or maybe try `rev = "rows"` or `rev = "columns"`. Determine which version(s) produces the odds ratio when we want the odds (Y:N) for the placebo group over the odds (Y:N) for the Vitamin C group.
 
+```{r}
+oddsratio.wald(mymat, rev = "both")$measure
+oddsratio.wald(mymat, rev = "rows")$measure
+oddsratio.wald(mymat, rev = "columns")$measure
+```
+
+$\qquad$ <span style="color: blue;">It looks like `rev = "rows"` shows us the data in the format that we're looking for.</span>
+
 8. Rinse and repeat #1 and #2 for the relative risk calculation. What proportions (Yes or No) are being used to calculate the relative risk and which group is on top of the ratio? Use the `rev` option to swap things around so that the relative risk metric is (proportion of Yes placebo group over the proportion of yes for the Vitamin C group).
+
+```{r}
+riskratio.wald(mymat)$measure
+riskratio.wald(mymat, rev = "both")$measure
+riskratio.wald(mymat, rev = "rows")$measure
+riskratio.wald(mymat, rev = "columns")$measure
+```
 
 Note: The whole point of these questions is to get you experienced with the idea of swapping estimates around to get at the most comfortable interpretation of the metric you would like to report. It'll force you to appreciate that you can't trust the output directly; don't forget you can always do a hand calculation to make sure what is being reported makes sense.
 
 9. Conduct an analysis of the study reported in the Sleuth book Ch. 18 Exercise #7. Make sure to comment on the study design and which metrics are available to use, conduct your analysis, and write a conclusion to answer the researchers question "Is alcoholic beverage consumption associated with breast cancer?"
+
+```{r fig.align='center', fig.cap="Statistical Sleuth, Chapter 18, Exercise 7"}
+knitr::include_graphics(here::here("6372", "week 11", "sleuth18.7.png"))
+```
+
+$\qquad$ <span style="color: blue;">This is a retrospective, observational study. The odds of women getting cancer who have fewer than 4 drinks per week is 0.949 times less than the odds of women who have 4 or more drinks per week (95% confidence interval: 0.7655, 1.1766).</span>
 
 ## Exercise #2: Mantel-Haenszel Tests
 
@@ -142,8 +177,14 @@ This data set requires the knowledge of two 2x2 count tables (one for each knowl
 
 ```{r}
 vit.c <- data.frame(
-  Supp = rep(c("Placebo", "Vitamin C", "Placebo", "Vitamin C"), times = c(312, 168, 88, 232)),
-  Cold = rep(c("Yes", "No", "Yes", "No", "Yes", "No", "Yes", "No"), times = c(266, 46, 139, 29, 62, 26, 157, 75)),
+  Supp = rep(
+    c("Placebo", "Vitamin C", "Placebo", "Vitamin C"),
+    times = c(312, 168, 88, 232)
+  ),
+  Cold = rep(
+    c("Yes", "No", "Yes", "No", "Yes", "No", "Yes", "No"),
+    times = c(266, 46, 139, 29, 62, 26, 157, 75)
+  ),
   Known = rep(c("Yes", "No"), times = c(480, 320))
 )
 head(vit.c)
@@ -162,7 +203,7 @@ library(samplesizeCMH)
 mytable <- mytable[, c(2, 1), ] # Odds (Y:N) Placebo over
 mytable
 
-# Comparing the odds for each known categoy (Yes they knew their group, no they didn't)
+# Comparing the odds for each known category (Yes they knew their group, no they didn't)
 apply(mytable, 3, odds.ratio)
 ```
 
@@ -179,4 +220,41 @@ mantelhaen.test(mytable)
 
 10. Ignore the known status variable and conduct a standard 2x2 analysis from a collapsed table. Provide the Fisher's Exact Test and a confidence interval for the odds ratio and compare it to the previous Mantel-Haenszel test results. The result of this comparison really shows how patients not being blinded to the treatment group can really impact the overall estimates of parameters like odds ratios as well as the hypothesis test conclusions.
 
+```{r}
+# Another way to format a count matrix
+mymat <- matrix(c(328, 72, 296, 104), 2, 2, byrow = T)
+dimnames(mymat) <- list("Supp" = c("Placebo", "Vitamin C"), "Response" = c("No", "Yes"))
+mymat
+
+# Odds Ratio Intervals
+oddsratio.wald(mymat)$p.value
+```
+
 11. Consider Chapter 19 Exercise 17 out of Statistical Sleuth. It is an extension to the alcohol/breast cancer study you previously did. Perform the Mantel-Haenszel test procedure after taking into account the individual women's body mass as this could be a confounding factor. (Use `?mantelhaen.test` for one example of writing the data set into an array table if you don't want to make a big data set up front like I did in the example code.)
+
+```{r}
+# Make a matrix
+alcohol <- tibble(drinks = rep(c("At least one drink per day",
+                                 "Less than one drink per month"),
+                               times = c(309, 557)),
+                  groups = rep(c("Cases", "Controls"),
+                               times = c(309, 557)),
+                  bmi = rep(c("< 21 kg/m^2",
+                              "> 25 kg/m^2",
+                              "21-25 kg/m^2",
+                              "< 21 kg/m^2",
+                              "> 25 kg/m^2",
+                              "21-25 kg/m^2"),
+                            times = c(64, 86, 159, 113, 144, 300))
+                  )
+
+# Make a table
+alcohol_table <- table(alcohol)
+
+# Look at the table
+alcohol_table
+
+# Mantel-Haenszel Test
+mantelhaen.test(alcohol_table)
+```
+
