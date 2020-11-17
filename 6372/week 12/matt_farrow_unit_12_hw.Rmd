@@ -16,48 +16,62 @@ editor_options:
 
 1. Explain why logistic regression is needed to model a binary, categorical response. Use terminology like "log odds" or "the logit function".
 
+$\qquad$ <span style="color: blue;">Because the response variable in logistic regression is not continuous, we can't use a linear model. Instead, we use the log odds to convert the binary response into a continuous response.</span>
+
 2. TRUE or FALSE? Like LDA, logistic regression can only be used on continuous variables.
+
+$\qquad$ <span style="color: blue;">False.</span>
 
 3. When using logistic regression in software, what is the underlying prediction being made? Is it a "Yes/No" prediction or something else? Explain. 
 
+$\qquad$ <span style="color: blue;">In software, what is being calculated is a probability between 0 and 1. Software converts that probability into a "Yes/No" prediction.</span>
+
 4. TRUE or FALSE? Multicollinearity is not really a problem for LDA unless there is perfect correlation between predictors. It is however a problem for logistic regression, especially as far as interpretation is concerned.
+
+$\qquad$ <span style="color: blue;">False.</span>
 
 ## Exercise #1: EDA for Logistic Regression
 
-Previously we looked at the the auto data set for multiple linear regression. For illustration purposes, we will use this again but consider the response variable mpg as a binary categorical variable that denotes if the vehicle has "High" or "Low" mpg. The following code recodes mpg as well as cleans up a few variables. I've removed the 3 cylinder and 5 cylinder vehicles as well as converted the Origin predictor to just have 2 levels (1- US or 2- Not US). For this exercise, the "success" outcome for the response will be the "high" mpg category. I've also went ahead and created a training and test set for later parts of the HW.  
+Previously we looked at the the auto data set for multiple linear regression. For illustration purposes, we will use this again but consider the response variable mpg as a binary categorical variable that denotes if the vehicle has "High" or "Low" MPG The following code re-codes MPG as well as cleans up a few variables. I've removed the 3-cylinder and 5-cylinder vehicles as well as converted the Origin predictor to just have 2 levels (1- US or 2- Not US). For this exercise, the "success" outcome for the response will be the "high" MPG category. I've also went ahead and created a training and test set for later parts of the HW.  
 
 ```{r}
 library(ISLR)
 newAuto <- Auto
+
 # Creating a categorical response for illustrative purposes.
 newAuto$mpg <- factor(ifelse(Auto$mpg > median(Auto$mpg), "High", "Low"), levels = c("Low", "High")) # last level is the success
 
 newAuto$cylinders <- factor(newAuto$cylinders)
-# Removing data with 3 and 5 cylinders and making sure are R treats the predictor with just 3 levels and not 5.
+
+# Removing data with 3 and 5 cylinders and making sure are R treats the
+# predictor with just 3 levels and not 5.
 newAuto <- newAuto[-which(newAuto$cylinders %in% c(3, 5)), ]
 newAuto$cylinders <- factor(newAuto$cylinders)
-# Creating just two origins by combining 2 and 3 again for keeping things simple.
+
+# Creating just two origins by combining 2 and 3 again for keeping things
+# simple.
 newAuto$origin[which(newAuto$origin == 3)] <- 2
 newAuto$origin <- factor(newAuto$origin)
 
-# From here we are going to do a simple split of the data set and explore the training
-# data set newAuto. The test will be held out for assessment of the model fits.
+# From here we are going to do a simple split of the data set and explore the
+# training data set newAuto. The test will be held out for assessment of the
+# model fits.
 set.seed(1234)
 index <- sample(1:385, 250, replace = FALSE)
 test <- newAuto[-index, -9]
 train <- newAuto[index, -9]
 ```
 
-The one key piece of code that should not go unnoticed from the above script is setting the levels for your response variable (3rd line). Since we want the "success" outcome to be identified as High mpg, we have to make sure the last level of the factor is the success outcome. Default is alphabetical order so if we did not force it, the success would be defined as "Low" and the interpretation of odds ratios for logistic regression models will have to reflect that difference. You also need to keep this information consistent when looking at prediction performance graphics like ROC curves which we will discuss later.
+The one key piece of code that should not go unnoticed from the above script is setting the levels for your response variable (3rd line). Since we want the "success" outcome to be identified as High MPG, we have to make sure the last level of the factor is the success outcome. Default is alphabetical order so if we did not force it, the success would be defined as "Low" and the interpretation of odds ratios for logistic regression models will have to reflect that difference. You also need to keep this information consistent when looking at prediction performance graphics like ROC curves which we will discuss later.
 
-EDA for logistic regression is typically done in a very similar fashion as multiple linear regression, the key is just making sure you view things through the lens of a categorical response. To get a global view of a lot of predictors at once, a scatter plot matrix can be viewed. The package GGally provides a great way to view the categorical response and takes into account the data types of each predictor (low-orange , high-blue).
+EDA for logistic regression is typically done in a very similar fashion as multiple linear regression, the key is just making sure you view things through the lens of a categorical response. To get a global view of a lot of predictors at once, a scatter plot matrix can be viewed. The package `GGally` provides a great way to view the categorical response and takes into account the data types of each predictor (low-orange , high-blue).
 
 ```{r}
 library(GGally)
 ggpairs(newAuto, columns = 2:8, aes(colour = mpg))
 ```
 
-We can also conduct PCA using the continuous predictors as previously discussed. Summary statistics should also be viewed as well as clustering tools which we will get in a little later. If you want to take a closer look at some of the plots in the scatter matrix, the following codes can create individual plots and statistics to explore trends. In this example, we can see that the percentage of high mpg vehicles increases as the number of cylinders decreases. A similar trend can be observed with boxplots of weight.
+We can also conduct PCA using the continuous predictors as previously discussed. Summary statistics should also be viewed as well as clustering tools which we will get in a little later. If you want to take a closer look at some of the plots in the scatter matrix, the following codes can create individual plots and statistics to explore trends. In this example, we can see that the percentage of high mpg vehicles increases as the number of cylinders decreases. A similar trend can be observed with box plots of weight.
 
 ```{r}
 attach(newAuto)
@@ -68,9 +82,24 @@ t(aggregate(weight ~ mpg, data = newAuto, summary))
 plot(weight ~ mpg, col = c("red", "blue"))
 ```
 
-5. Using the summary statistics and scatter matrix provide previously or creating some of your own, briefly describe if any of the predictors look like they could be helpful in predicting the mpg categories (outside of cylinders and weight which was already mentioned).
+5. Using the summary statistics and scatter matrix provided previously or creating some of your own, briefly describe if any of the predictors look like they could be helpful in predicting the MPG categories (outside of cylinders and weight which was already mentioned).
 
-6. We discussed previously that multicollinearity can happen among categorical as well as continuous predictors. Our focuse has been on exploration of the continuous variables mainly. For example, create a boxplot of weight by cylinders. If there is no multicollinearity then the average weight should not depend on the cylnder of the car. What does your graph suggest? What about origin and cylinders... are they "correlated" visually? 
+$\qquad$ <span style="color: blue;">Looking at the `ggpairs` plot, it appears that `displacement` as well as `horsepower` may be helpful in predicting MPG.</span>
+
+6. We discussed previously that multicollinearity can happen among categorical as well as continuous predictors. Our focus has mainly been on exploration of the continuous variables For example, create a box plot of weight by cylinders. If there is no multicollinearity then the average weight should not depend on the cylinder of the car. What does your graph suggest? What about origin and cylinders? Are they "correlated" visually? 
+
+```{r}
+library(tidyverse)
+newAuto %>%
+        ggplot(aes(cylinders, weight)) +
+        geom_boxplot() +
+        labs(title = "Comparison of Car Weight by Number of Cylinders",
+             x = "Cylinders",
+             y = "Weight (lbs)") +
+        theme_minimal()
+```
+
+$\qquad$ <span style="color: blue;">A box plot shows that there is indeed a difference in average weight between cars of different cylinders.</span>
 
 ## Exercise #2: Simple Logistic Regression (making connections)
 
@@ -83,7 +112,7 @@ mymat
 oddsratio.wald(mymat)
 ```
 
-Running a logistic regression call in R is very similar to ordinary multipe linear regression (MLR). The script below provides the function call using just Origin as a predictor. The traditional `summary` function can produce the regression coefficients, z-statistics, and p-values just like in MLR. 
+Running a logistic regression call in R is very similar to ordinary multiple linear regression (MLR). The script below provides the function call using just Origin as a predictor. The traditional `summary` function can produce the regression coefficients, z-statistics, and p-values just like in MLR. 
 
 ```{r}
 simple.log <- glm(mpg ~ origin, family = "binomial", data = newAuto)
@@ -92,13 +121,15 @@ summary(simple.log)
 
 7. Interpret the regression coefficient (in terms of an odds ratio) from the logistic regression model and compare your result to the 2x2 table analysis already covered. What did you find?!?! 
 
+$\qquad$ <span style="color: blue;">Exponentiating `origin2` in the logistic regression model is equal to the odds ratio of `origin2`! $exp(2.7280)=15.3025$</span>
+
 ## Exercise 3: Feature Selection for Logistic Regression
 
 The same strategies from MLR can be applied to the logistic regression setting. When working with larger sets of predictors, this will be a very common strategy to implement. The following code performs stepwise logistic regression using AIC as a stopping criterion. Forward and backward work similarly. While it is possible to compute a test error metric at each step or via CV, we will work with AIC on the training data set for now. (Many packages have this pretty well automated. See caret for example.)
 
 ```{r}
 library(MASS)
-library(tidyverse)
+library(dplyr)
 library(car)
 full.log <- glm(mpg ~ ., family = "binomial", data = train)
 step.log <- full.log %>% stepAIC(trace = FALSE)
@@ -110,10 +141,16 @@ We can use the `coef` function to see which predictors were included. If the ste
 summary(step.log)
 exp(cbind("Odds ratio" = coef(step.log), confint.default(step.log, level = 0.95)))
 
-# Note: You can also look at vifs. vif(step.log) #Last column is interpretted based off of rule of 5 or 10
+# Note: You can also look at vifs. The last column is interpreted based off of
+# rule of 5 or 10
+vif(step.log) 
 ```
 
 8. Using the stepwise regression model, interpret the regression coefficient for cylinder 6 (note the reference category is cylinder 4) and year. Note: The interpretation of cylinder 8 doesn't make a whole lot of sense. This is due to the fact that cylinders are confounded (correlated) with quite a few of the other predictor variables in the model. Explore EDA or we can talk more in office hours on seeing this if you are having trouble.
+
+```{r}
+
+```
 
 LASSO is obtained in the exact same way for logistic as is MLR. The only difference is to let R know that our response is categorical through the "family="binomial"" option. Cross validation is used to obtain the optimal penalty value. A final refit using the entire data set can then be obtained once the optimal penalty value is determined. For this example, the object `finalmodel` produces the final lasso model.
 
