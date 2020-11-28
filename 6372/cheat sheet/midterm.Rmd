@@ -1,0 +1,726 @@
+---
+title: "Midterm"
+author: "Matt Farrow"
+date: "11/27/2020"
+output: html_document
+---
+
+# Fall 2020 6372 Midterm
+
+## Study Guide
+
+### Unit Methods
+
+1.  Multiple Linear Regression
+2.  Two-Way ANOVA
+3.  Time Series
+4.  Repeated Measure
+
+### Key Conceptual Ideas
+
+#### The Two Statstical Goals
+
+Shmueli, Galit. To Explain or to Predict?. Statist. Sci. 25 (2010), no. 3, 289--310. <doi:10.1214/10-STS330>. <https://projecteuclid.org/euclid.ss/1294167961>
+
+##### Prediction
+
+-   The process of applying a statistical model or data mining algorithm to data for the purpose of predicting new or future observations
+
+-   The scientific value of predictive modeling....just a mere tool?
+
+    -   Some argue, that without proper study design, random sampling etc, there is nothing "scientific" about predictive modeling.\
+    -   I'd argue that PM has a damn fine suite of tools, just as with any tool, it is applied in the right settings and with the right goals.
+
+##### Explanation
+
+-   Testing of causal theory
+
+-   A set of underlying factors measured by variable X that are assumed to cause an underlying effect measured by variable Y
+
+    -   **Observational studies**, whether statisticians like it or not, are used to test for causality. There are usually strong theoretical arguments to be made before drawing this type of conclusion. Replicated studies is another way to help "validate" a causal relationship. **Controlled experiments and randomization**, allow for causal inferences or direct inference to a larger population to be made.
+
+#### The Bias Variance Trade Off
+
+```{r echo=FALSE, fig.align='center', fig.cap="Scenario 1: Low complexity. High Bias/Low Variance"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto1.png"))
+```
+
+```{r echo=FALSE, fig.align='center', fig.cap="Scenario 2: Low complexity. Moderate Bias/Low Variance"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto2.png"))
+```
+
+```{r echo=FALSE, fig.align='center', fig.cap="Scenario 3: Low complexity. No Bias/ Low Variance"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto3.png"))
+```
+
+```{r echo=FALSE, fig.align='center', fig.cap="Scenario 4: High Complexity. No Bias/Moderately high Variance"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto4.png"))
+```
+
+```{r echo=FALSE, fig.align='center', fig.cap="Scenario 5: High Complexity (Even more overfitting). No Bias/Higher Variance"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto5.png"))
+```
+
+Top is Bias (High, Moderate, None, None, None) Bottom is Variance (Low, Low, Low, Moderate, High)
+
+```{r echo=FALSE, fig.align='center', fig.cap="Bias/Variance Comparison"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto6.png"))
+```
+
+```{r echo=FALSE, fig.align='center', fig.cap="Bias vs. Variance vs. Model Complexity"}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "bvto7.png"))
+```
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Model_Complexity_print.png"))
+```
+
+##### Can you explain what the ASE outputs in SAS and R are telling us in regards to bias-variance trade off?
+
+-   ASE vs. \# Predictors - what does that tell us? Bathtub shapes.
+
+##### What does it mean for a model to suffer from bias? Variance?
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Bias_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Variance_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Bias-Variance_Tradeoff_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Overfitting_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Overfit_Vs_Underfit_print.png"))
+```
+
+##### What sort of metrics and methods allow us to assess the bias-variance trade-off when building models in the regression setting?
+
+-   Anything that penalizes model complexity.
+
+-   Adjusted R-squared, AIC,, BIC, Test ASE, Cross Validation.
+
+-   Smaller BIC & ASE better
+
+-   Higher adjusted R-squared is better
+
+~~Be ready to potentially sketch some graphics to explain.~~ (Don't need to worry about per Dr. Turner)
+
+#### Cross Validation?
+
+##### What is its purpose?
+
+-   The purpose of cross validation is to test the performance of a model on "new" data.
+-   Types include holdout, K-fold, and leave-one-out.
+
+##### Can you explain, like you're teaching it, how K-fold CV works?
+
+-   To understand K-fold cross validation, we first need to understand the holdout method. In the holdout method, the data is split into a training set and a testing set. A model is then built on the training set to predict an output value on the testing set. In a K-fold cross validation, the data is divided up into $k$ subsets and those subsets take turns playing the part of "testing data" while the rest of the subsets function as the "training data."
+
+![](https://imada.sdu.dk/~marco/DM825/animation.gif "k-Fold Cross Validation")
+
+##### What are some advantages k-fold has over a train/test set split approach.
+
+-   It doesn't matter how the data is divided, every point gets to be in a test set once and a training set $k-1$ times.
+-   Variance of the resulting estimate is reduced as $k$ increases
+-   Some in the sciences like it because the user can't influence it
+-   Don't need a huge data set for it to be effective
+
+#### Identify Which Tool is More Appropriate
+
+-   I will give scenarios as if you are consulting for a new project. It will be your job to identify which of the methods (or none of them) are appropriate for the task at hand.
+-   I'll also give scenarios to ask you to criticize if what the statistician is doing is a good idea or not and to justify your answer
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "K-Fold_Cross-Validation_print.png"))
+```
+
+### Example Questions
+
+#### Question 1
+
+\_\_\_\_\_ 9. Scenario 2: Suppose we collect a set of data on the top 500 firms in the US. For each firm we record profit, number of employees, industry and the CEO salary. We are interested in understanding which factors affect CEO salary.
+
+**a) Multiple Linear Regression**
+
+b)  Two Way ANOVA
+
+c)  Time Series
+
+d)  Repeated measures
+
+e)  Something we haven't covered yet
+
+#### Question 2
+
+Question 10 (4pts)
+
+A predictive modeler is not happy with his current multiple linear regression model's prediction accuracy. He currently is using 6 continuous and 2 categorical predictors. These are the only variables he currently has to work with and he is using them as is. All regression coefficients are both statistically and practically significant. Given his current standing and the current information, provide a suggestion to help him possibly improve prediction accuracy.
+
+-   Look at interaction or quadratic terms (Dr. Turner's intent)
+
+-   Are there any non-linear relationships between the response and predictor variables?
+
+-   Need for transformations?
+
+-   Lack of fit ANOVA with and without interaction
+
+-   Dummy variables
+
+### What I'm Noticing From Projects
+
+#### Got a set of predictors to work with: pred1 pred2 pred3 pred4 pred5
+
+-   Chose to leave pred6, pred7, pred8 out due to logistical reasons and the fact that they were not correlated with the response to begin with
+-   Feature selection yielded y= pred1 pred3 pred4
+-   Model is easily interpretable. Yay! Test ASE is 7.2.
+
+#### Time to build a complex model
+
+-   Lets throw back in the predictors we threw out earlier
+-   Got a set of predictors: pred1 pred2 pred3 pred4 pred5 pred6 pred7 pred8
+-   Lets apply feature selection to this situation just like we did above.
+-   QUESTION: Why is this not really trying to build up a model that has more complexity, and thus, potentially may make better predictions than the one above?
+
+### Multiple Linear Regression (specifics)
+
+Should feel pretty good about this one given the project will be completed.
+
+#### ASE/MSE
+
+##### What is ASE?
+
+-   Average/Mean Square Error
+
+##### How is it computed?
+
+-   $$MSE=(predicted-actual)^2$$
+
+##### What's the difference between train ASE and test ASE?
+
+-   Train ASE should always be lower than Test ASE
+
+-   Due to the fact that the model is being built on the training data. In the test data, the model is working on previously unseen data so the ASE will be greater.
+
+#### Model Adequacy Diagnostics
+
+##### Adjusted R-square
+
+-   Adjusted R-squared is a modification of R-square to adjust for the number of predictors in the model
+-   Once all the correct features have been added, additional features should be penalized
+-   Increases only if the new term improves the model more than would be expected by chance
+-   Decreases when a predictor improves the model by less than expected by chance
+-   Always lower than R-squared
+-   $\hat{R}^2=1-\frac{RSS/(n-d-1)}{TSS/(n-1)}$
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Adjusted_R-Squared_print.png"))
+```
+
+##### AIC
+
+-   Akaike ("Er-Kye-Ih-Key") information criterion
+-   Used to compare which model is better. For example, during feature selection.
+-   More appropriate than BIC if there aren't too many redundant and unnecessary \$X's\$ in the starting set
+-   $AIC=\frac{1}{n\hat{σ}^2}(RSS + 2d\hat{σ}^2)$
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "AIC_print.png"))
+```
+
+##### BIC
+
+-   Schwart'z Bayesian Information Criterion
+
+-   Tends to favor models with fewer $X's$ than AIC
+
+-   More appropriate if many and redundant
+
+-   Particularly useful if more burden is going to placed on the computer
+
+##### ASE (CVPRESS, Test ASE, Train ASE)
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Mean_Absolute_Error_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Mean_Squared_Error_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Ordinary_Least_Squares_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Residual_Sum_Of_Squares_print.png"))
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Total_Sum-Of-Squares_print.png"))
+```
+
+#### Interpretation of Regression Coefficients
+
+-   I will not give any exotic interpretations like log(x) or log(y)=b0+b1\*log(x). You will get standard stuff or a simple log(y) transformation and that is it.
+
+#### LASSO vs OLS
+
+##### How does the penalty work?
+
+##### What does large penalty values do to the regression model?
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Lasso_For_Feature_Selection_print.png"))
+```
+
+#### Importance of Feature Selection
+
+1.  When could feature selection/LASSO actually hurt you in the model building process?
+2.  When would it be most beneficial?
+
+```{r echo=FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "Feature_Selection_Strategies_print.png"))
+```
+
+#### Know Assumptions and How to Check Them
+
+-   Residuals are normally distributed
+
+    -   (Note the response variable doesn't necessarily have to   be normally distributed, neither do the predictors)
+
+-   Constant variance
+
+    -   The variance of the residuals does not change depending on the predicted value or any other plot of residuals vs "something"
+
+-   Observation are independent
+
+Other concerns
+
+-   Multicollinearity
+
+    -   check through VIFs
+
+    -   This is not an issue if you only want to predict
+
+    -   It's a major issue if you want to interpret the regression coefficients and assess significance
+
+-   Outliers and Leverage
+
+    -   Check through residual diagnostics
+
+### Two-Way ANOVA (specifics)
+
+Two-Way Analysis of Variance (ANOVA) is multiple regression analysis with two categorical explanatory factors.
+
+1.  Be comfortable with the general workflow of analysis.
+
+-   Assumptions?
+
+-   What is the purpose of the F-tests?
+
+    -   If the data is balanced, a singe ANOVA table shows F-tests for row, column, and interactive effects.
+
+-   What is the purpose of the contrasts / individual comparisons
+
+2.  Definition of interaction.
+
+-   I will usually test your understanding using graphics or tables where you can't rely on the idea of parallel means plot. If you know the concept, you'll still be fine.
+-   What test tells of if there is an interaction or not? What does that mean in regards to the general workflow?
+
+3.  Do outliers matter in Two Way ANOVA? What about Leverage?
+
+4.  What is multiple testing all about? Why are corrections like Bonferroni, Tukey, etc important? What happens to your results if you have a ton of tests?
+
+    -   Corrections help control the family-wise error rate
+
+### Time Series (specifics)
+
+1.  What is the major pitfall of not appropriately identifying a data set that is time series? (or repeated measures)
+
+    -   If you don't acknowledge there is serial correlation is present, your hypothesis testing will not be valid.
+
+2.  What is the major advantage of appropriately identifying a data set that is time series and applying a time series model?
+
+    -   Having correlated data helps you make better predictions
+
+3.  Comfortable with interpretation of ACF, PACF plots. Revisit the Durbin Watson test. We did not really cover it in class, but it may creep up in the midterm, revisit HW discussion.
+
+    -   Make sure you're comfortable with the rules of thumb for the models (ARMA, ARIMA, etc.)
+    -   Durbin Watson tests for serial correlation
+
+4.  General understanding of a stationary time series possesses How does this effect forecasts into the future?
+
+    -   First two assumptions (not 3rd, constant autocorrelation)
+    -   How do you decide if it is stationary or not
+    -   If you assume it's stationary the forecasts will always go back (regress) to the mean. A non-stationary model could go anywhere.
+
+5.  If a time series model include predictors, is the original time series stationary or not? What assumption does it break?
+
+    -   Breaks the constant mean assumption.
+    -   As soon as you add a predictor you say the mean is not constant, it depends on something else in the model
+
+6.  There will be no ARIMA type concepts other than just suggesting models based on rules of thumb and/or AIC.
+
+### Repeated Measures (specifics)
+
+1.  What is the major pitfall of not appropriately identifying a data set that is time series?
+
+    -   Hypothesis ... not valid....
+
+2.  Do repeated measures have to look like two way ANOVA analysis?
+
+    -   Can also look like regular regression problem with continuous variable
+
+3.  Can you identify a data set is repeated measures through simply looking at the data set and model diagnostics or do you need to have a good understanding of the study design?
+
+4.  Know the basic idea of a covariance matrix.
+
+5.  Go over the general workflow. How do we go about determining what type of correlation structure structure to use for a repeated measures model like
+
+-   Compound Symmetry
+-   Unstructured
+-   AR(1)
+
+This will be the lightest on the exam of the 4 methods.
+
+### Analysis Questions
+
+Be comfortable with the general workflow of the analysis for each of the 4 previous methods.
+
+You can expect to see analysis output provided (perhaps even multiple outputs with different models). It will be up to you to determine the most appropriate one and provide information on model assumptions, hypothesis testing, confidence intervals, and interpretation.
+
+## Midterm
+
+Directions: Please provide all of your answers in this document and submit it to 2DS. Note: By turning in a midterm, you promise to not have consulted with anyone about the content of this test during the administration of it through any media (chat, phone, email, etc.). Not adhering to the SMU honor code has serious consequences.
+
+ATTENTION: Please include your responses in a different color font. Also, you may include commentary to your multiple choice answers if you feel it necessary. I'm not expecting you too, but it could help if you are not certain.
+
+### Multiple Choice
+
+1.  Making predictions on a test set or cross validation sets is useful for
+
+<!-- -->
+
+$\qquad$ a. getting a reliable assessment of prediction error\
+$\qquad$ b. determining how many predictors should be included in the model\
+$\qquad$ c. optimizing additional parameters in the algorithm like a penalty in LASSO\
+$\qquad$ d. **All of the above**\
+$\qquad$ e. Only a and b
+
+<!-- -->
+
+2.  The perks of cross validation over a simple train/test set split is (are)
+
+<!-- -->
+
+$\qquad$ a. Test error can be estimated when sample size is not very big\
+$\qquad$ b. Variability in the train/test set split can be assessed\
+$\qquad$ c. Will create the best model possible\
+$\qquad$ d. All of the above\
+$\qquad$ e. **Only a and b**
+
+<!-- -->
+
+3.  If a model consistently (on average) under or over predicts what the true response value is for certain predictor values or combinations, the test error (ASE) will suffer due to
+
+<!-- -->
+
+$\qquad$ a. **High bias**\
+$\qquad$ b. High variance\
+$\qquad$ c. Overfitting\
+$\qquad$ d. Both high bias and high variance
+
+<!-- -->
+
+4.  What is not an assumption of a multiple linear regression model
+
+<!-- -->
+
+$\qquad$ a. The response variable alone is normally distributed\
+$\qquad$ b. The errors have constant variance\
+$\qquad$ c. Observations are independent\
+$\qquad$ d. **All of the above are assumptions**
+
+$\qquad$ [Mistake: Read carefully]{style="color: red;"}
+
+$\qquad$ [a. The response variable alone is normally distributed]{style="color: blue;"}
+
+<!-- -->
+
+5.  Which model fit metrics do not have any sort of control for overfitting?
+
+<!-- -->
+
+$\qquad$ a. AIC\
+$\qquad$ b. BIC\
+$\qquad$ c. ASE calculated on a test set\
+$\qquad$ d. **ASE calculated on a training set**\
+$\qquad$ e. Adjusted R-squared\
+$\qquad$ f. All of them control for overfitting
+
+<!-- -->
+
+6.  When applied on the same data set with the same set of predictors, a LASSO multiple linear regression fit with an extremely large penalty value, will yield
+
+<!-- -->
+
+$\qquad$ a. A more complex model than an MLR model applied to the same set of predictors\
+$\qquad$ b. **A less complex model than an MLR model applied to the same set of predictors**\
+$\qquad$ c. A model with the same complexity as the MLR model applied to the same set of predictors\
+$\qquad$ d. There is no definitive call here
+
+<!-- -->
+
+7.  The family wise error rate is
+
+<!-- -->
+
+$\qquad$ a. The act of making a type I error\
+$\qquad$ b. The act of making at least one type I error\
+$\qquad$ c. The chances of making a type I error\
+$\qquad$ d. **The chances of making at least one type I error**\
+$\qquad$ e. The chances of making all conclusions correct
+
+<!-- -->
+
+8.  If one applies a Bonferroni correction on 20 tests and another analyst applies a Bonferroni correction on just 10 out of the 20 tests. For the 10 tests that both analysts have in common, who will have more significant tests?
+
+<!-- -->
+
+$\qquad$ a. The analyst applying the correction on all 20\
+$\qquad$ b. **The analyst applying the correction on just the 10**\
+$\qquad$ c. The results will be the same\
+$\qquad$ d. It could be either scenario depending on the situation
+
+<!-- -->
+
+9.  Which ASE Plot below provides more evidence of overfitting? Include some thoughts on why? Just focus on the Train/Test plots (blue and red). You can ignore the validation curve in green.
+
+```{r echo = FALSE, fig.cap="Left", out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm1.png"))
+```
+
+```{r echo = FALSE, fig.cap="Right", out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm2.png"))
+```
+
+$\qquad$ **My gut says that the right plot is overfit because of how closely the training and test ASE values track one another. However, the fact that the left plot shows a distinct flip at step 15 is also interesting.**
+
+$\qquad$ [Mistake: Don't trust your gut and go with the interesting observation :)]{style="color: red;"}
+
+$\qquad$ [Because of the flip that van be observed in the data between steps 14 and 15, we can conclude that at that point the data is being overfit.]{style="color: blue;"}
+
+10. Which of the following is not a tool to diagnose if serial correlation in time series exists (from an AR perspective only)?
+
+<!-- -->
+
+$\qquad$ a. PACF plot\
+$\qquad$ b. ACF plot\
+$\qquad$ c. Durbin Watson Test\
+$\qquad$ d. **AIC comparing an OLS model versus the same model with time series components.**\
+$\qquad$ e. All of the above are useful in diagnosing AR(1) serial correlation.
+
+$\qquad$ [Mistake]{style="color: red;"}
+
+$\qquad$ [e. All of the above are useful in diagnosing AR(1) serial correlation.]{style="color: blue;"}
+
+### Model Decisions
+
+For each of the following scenarios, state whether or not the appropriate model described would be the most appropriate to use. When your answer is "no, it is not", provide additional justification for your answer.
+
+#### Question 11
+
+Scenario 1: A medical researchers is studying two groups of patients (Healthy children and children with Lupus). For each of the two groups of kids, the medical researcher has data collected (a continuous measurement) on each of the patients prior to being administered a drug and then another measurement taken after being on the drug 1 month later. A repeated measures analysis will be used to assess if the changes of being on the drug versus not on the drug is the same for both groups of kids.
+
+$\qquad$ **Yes, a repeated measures analysis is the most appropriate model.**
+
+#### Question 12
+
+Scenario 2: A Corporate bank is interested in understanding what factors contribute to whether a customer will default on their credit card payment or not. The analyst has obtained a data set of which each customer is included only once in the data set. The plan is to conduct a multiple linear regression analysis including potential predictors such as current balance, credit score on file, debt to income ratio, among others.
+
+$\qquad$ **Since the scenario does not address whether the customers are also being compared against other customers who did or did not default, in which case something like KNN might be appropriate, a multiple linear regression is the most appropriate model for this scenario.**
+
+$\qquad$ [Mistake: You're almost there. The response is binary so regression is not going to work.]{style="color: red;"}
+
+$\qquad$ [Linear regression assumes that the outcome variable is continuous, therefore multiple linear regression is not appropriate in this situation since the outcome is binary.]{style="color: blue;"}
+
+#### Question 13
+
+For the time series graph below, upon visual inspection, do you believe the time series is stationary or not? If not what assumption(s) is it violating?
+
+```{r echo = FALSE, out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm3.png"))
+```
+
+$\qquad$ **Due to the rising trend in the data, I don't believe that the data as it stands now is stationary, but a simple linear fit may be sufficient to adjust it and make it stationary.**
+
+$\qquad$ [Mistake: What about the other assumptions of stationarity.]{style="color: red;"}
+
+$\qquad$ [The graph shows a definite seasonality as well as different means. Therefore the data is not stationary.]{style="color: blue;"}
+
+Consider the data set below of average hourly wages of textile and apparel workers for the 18 months from January 1986 through June 1987. A plot of the data over time as well as additional diagnostics are provided below.
+
+```{r echo = FALSE, fig.cap="Data", out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm4.png"))
+```
+
+```{r echo = FALSE, fig.cap="Plot", out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm5.png"))
+```
+
+```{r echo = FALSE, fig.cap="ACF", out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm6.png"))
+```
+
+```{r echo = FALSE, fig.cap="PACF", out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm7.png"))
+```
+
+#### Question 14
+
+The time series only has 18 observations so assessment of stationarity will prove difficult. Assuming that the data set is stationary, provide an explanation as to if serial correlation is present in the data set or not. If you conclude that there is serial correlation present, provide a suggested time series model that could appropriately account for the correlation.
+
+$\qquad$ **Because the ACF plots show a general decay, I believe that serial correlation is present in the data set and an AR model is the most appropriate here.**
+
+$\qquad$ [Mistake: Could use a little more clarity on why serial correlation is present. Also, since you suggest AR, which one? AR(1), AR(2), ....?]{style="color: red;"}
+
+$\qquad$ [The ACF plot shows a signifiant spike at lag 1, and possibly lag 2. The PACF plot shows a significant spike at lag 1 then a cyclical decay afterwards. In this scenario, I believe that an ARMA (1,1) model would be most appropriate.]{style="color: blue;"}
+
+#### Question 15
+
+Name one of the major pitfall(s) / concerns of assuming observations are independent when in fact they are correlated like in repeated measures or time series.
+
+$\qquad$ **If we mistakenly assume that our observations are independent, our analysis will be incorrect if in fact that are indeed correlated. As a result, or final conclusions, including p-values will be incorrect.**
+
+#### Question 16
+
+Provide at least 2 reasons as to why feature selection can not be viewed as a "fix all" when building multiple linear regression models.
+
+$\qquad$ **As we explored in the Google Flu Trends discussion, there may be pitfalls that are not found by feature selection. Examples include confounding variables and dependencies among predictors.**
+
+$\qquad$ [Mistake: These are kind of more general discussion of all parts of building models, but I was looking for things more specific to feature selection.]{style="color: red;"}
+
+$\qquad$ [Feature selection can be computationally intensive depending on how many variables you have to work with. In addition, it may overfit the model if too many variables are included.]{style="color: blue;"}
+
+### Analysis Questions
+
+Consider the data below from a study of 3 pain medicines.
+
+```{r echo=FALSE}
+tibble::tibble(
+  gender = c(rep("female", 18), rep("male", 15)),
+  treatment = c(
+    rep("A", 13),
+    rep("B", 2),
+    rep("C", 3),
+    rep("A", 5),
+    rep("B", 5),
+    rep("C", 5)
+  ),
+  pain_score = c(
+    7.69,
+    9.69,
+    8.89,
+    6.94,
+    2.13,
+    7.26,
+    5.87,
+    7.2,
+    6.81,
+    6.67,
+    6.98,
+    7.07,
+    5,
+    8.35,
+    3.84,
+    12.2,
+    9.41,
+    2.4,
+    8.18,
+    7.24,
+    7,
+    7,
+    8,
+    12.9,
+    16.6,
+    11.81,
+    10.84,
+    10.42,
+    12.4,
+    14,
+    11.6,
+    13.9,
+    11.2
+  )
+)
+```
+
+A two-way analysis of variance was performed on this data with the results below:
+
+```{r echo = FALSE, out.width="100%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm8.png"))
+```
+
+```{r echo = FALSE, out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm9.png"))
+```
+
+```{r echo = FALSE, out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm10.png"))
+```
+
+```{r echo = FALSE, out.width="75%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm11.png"))
+```
+
+```{r echo = FALSE, out.width="100%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm12.png"))
+```
+
+```{r echo = FALSE, out.width="100%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm13.png"))
+```
+
+```{r echo = FALSE, out.width="50%", fig.align='center'}
+knitr::include_graphics(here::here("6372", "cheat sheet", "images", "midterm14.png"))
+```
+
+#### Question A
+
+Are the assumptions met for this two way anova analysis?
+
+$\qquad$ **Yes, it appears that all of the assumptions are met for this two-way ANOVA.**
+
+#### Question B
+
+Is there any evidence that changes in mean pain score between treatments depend on whether they are female or male? Explain what output you used to answer the question and provide a simple explanation in words what the hypothesis test is asking?
+
+$\qquad$ **In the "Type 3 Tests of Fixed Effects," the p-value for gender (0.0002) indicates that gender is a significant factor in the pain score. Additionally, the "Least Squares Means" table shows lower confidence intervals for the gender\*treatment interaction for females.**
+
+$\qquad$ [Mistake: So you've reported two test statistics....which one is it that answers the question at hand? Only one of them directly answers the question.]{style="color: red;"}
+
+$\qquad$ [Based on the "Interaction plot for pain score", it does appear that the mean pain scores of treatments B & C are different for females than for males.]{style="color: blue;"}
+
+#### Question C
+
+A doctor reading this report decided to summarize the finding with the following statement. "Men and women respond differently to pain medicine (p-value 0.002)" Provide a criticism to his statement.
+
+$\qquad$ **The primary criticism that I see is due to the experimental design on this study. Where the males equally into groups of 5 for each treatment, the females were divided into a group of 13 for treatment A, and two each for treatments B & C. Compounding that, for the females in groups B & C, it appears that one female in each group recorded a pain\_score that may be an outlier (3.84 and 2.4, respectively).**
+
+$\qquad$ [Mistake: I'm not sure how you can call something an outlier with a data set of 2. Given, as you pointed out the interaction term is significant, does there statement seem like it is describing a nonaddative situation?]{style="color: red;"}
+
+$\qquad$ [answer]{style="color: One criticism of the doctor's statement is that it only takes into account the p-value of `gender`, while overlooking the additional significant p-values of `treatment` and the `gender*treatment` interaction term.;"}
+
+#### Question D
+
+What does the F-test table in this report not have the ability to tell you?
+
+$\qquad$ **The F-test table does not have the ability to tell which specific groups, or possibly combinations of groups, differ from one another in the study.**
+
+#### Question E
+
+Provide a brief summary on what treatments potentially work better for men. Provide statistical results to back up your summary. Assume that a lower pain score means that the treatment is working better.
+
+$\qquad$ **Treatment A appears to be most effective at reducing the pain score in males (estimate of 7.484).**
+
+$\qquad$ [Mistake: In the difference table, you can directly do the comparisons and report those results. your visually conducting a hypothesis test without looking at those.]{style="color: red;"}
+
+$\qquad$ [Based on the estimates from the "Differences in Least Squares Means" table, treatments B & C appear to potentially work better for men (6.4 and 4.6 respectively).]{style="color: blue;"}
+
+### The Steve Bramhall Bonus Question
+
+You are about to head into a meeting to discuss a new project in which you will be building a model for prediction. Before you head in, you jot down a series of questions (or general topics of discussion) that you feel have to absolutely be answered before you dive in and get started. Provide a list of questions that you would need so that you could effectively do your job. You may assume that the amount of data you will have to work with will be large. Your questions/topics can be both technical and logistical.
+
+-   Assume that I have no domain knowledge about this topic. Can you walk me through each of the variables and describe how the information was collected?
+
+-   What is the client hoping to get out of this prediction model? They may be asking for one thing but need another.
+
+-   Are there project requirements that I need to be aware of? (Budget, resources, data privacy, timeline, etc.)
+
+-   Is there someone on staff that I can work with if I have additional questions or need additional data?
+
+-   What is the intended use of this predictive model?
